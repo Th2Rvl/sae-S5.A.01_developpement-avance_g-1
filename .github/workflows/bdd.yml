@@ -1,0 +1,99 @@
+# =============================================================================
+# CI de la base de données : vérifie à chaque pull request que les migrations
+# Flyway s'appliquent correctement sur une vraie base MySQL 8.4 jetable.
+# =============================================================================
+name: CI base de données
+
+on:
+  pull_request:                       # TOUTE PR vers api-dev ou main (le check est obligatoire)
+    branches: [api-dev, main]
+  push:                               # après un merge : seulement si les migrations ont changé
+    branches: [api-dev, main]
+    paths:
+      - 'bdd/**'
+      - '.github/workflows/bdd.yml'
+
+permissions:
+  contents: read                      # le workflow ne fait que lire le dépôt
+
+concurrency:                          # un nouveau push annule l'exécution en cours de la même branche
+  group: bdd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLYWAY_IMAGE: flyway/flyway:13.9.0  # même version qu'en local
+  # Variables lues automatiquement par Flyway (transmises au conteneur avec "-e NOM")
+  FLYWAY_URL: jdbc:mysql://127.0.0.1:3306/tgv_ci?permitMysqlScheme=true&allowPublicKeyRetrieval=true
+  FLYWAY_USER: tgv_app
+  FLYWAY_PASSWORD: tgv_app            # base jetable de CI, détruite à la fin : pas un secret
+  FLYWAY_LOCATIONS: filesystem:/flyway/sql
+  FLYWAY_CONNECT_RETRIES: "10"
+  FLYWAY_VALIDATE_MIGRATION_NAMING: "true"   # un fichier mal nommé fait échouer au lieu d'être ignoré
+  # Commande Flyway commune à toutes les étapes (migrations de la branche testée)
+  FLYWAY: >-
+    docker run --rm --network host
+    -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS
+    -e FLYWAY_CONNECT_RETRIES -e FLYWAY_VALIDATE_MIGRATION_NAMING
+    -v ${{ github.workspace }}/bdd/migrations:/flyway/sql:ro
+    flyway/flyway:13.9.0
+
+jobs:
+  migrations:
+    name: Migrations Flyway           # nom du check à rendre obligatoire dans le ruleset
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:                         # conteneurs démarrés par GitHub à côté du job
+      mysql:
+        image: mysql:8.4              # même version que la prod
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: tgv_ci
+          MYSQL_USER: tgv_app
+          MYSQL_PASSWORD: tgv_app
+        ports:
+          - 3306:3306                 # joignable sur 127.0.0.1:3306 depuis le runner
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -u root -proot --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 30s
+
+    steps:
+      - name: Récupérer le code de la branche
+        uses: actions/checkout@v5
+
+      # Sur une PR uniquement : on remet la base dans l'état où est la branche CIBLE
+      # (api-dev ou main), pour tester la migration comme elle se passera au déploiement.
+      - name: Simuler la base en place (migrations de la branche cible)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          if git cat-file -e "FETCH_HEAD:bdd/migrations" 2>/dev/null; then
+            mkdir -p "$RUNNER_TEMP/cible"
+            git archive FETCH_HEAD bdd/migrations | tar -x -C "$RUNNER_TEMP/cible"
+            docker run --rm --network host \
+              -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS -e FLYWAY_CONNECT_RETRIES \
+              -v "$RUNNER_TEMP/cible/bdd/migrations:/flyway/sql:ro" \
+              "$FLYWAY_IMAGE" migrate
+          else
+            echo "La branche cible n'a pas encore de migrations : on part d'une base vide."
+          fi
+
+      - name: Appliquer les migrations de la branche
+        run: $FLYWAY migrate
+
+      - name: Valider (noms de fichiers, checksums, cohérence avec l'historique)
+        run: $FLYWAY validate
+
+      - name: Vérifier qu'un second passage n'applique rien
+        run: |
+          sortie=$($FLYWAY migrate)
+          echo "$sortie"
+          echo "$sortie" | grep -q "No migration necessary" \
+            || { echo "::error::Le second passage a appliqué des migrations"; exit 1; }
+
+      - name: État final de la base
+        if: always()                  # affiché même si une étape précédente a échoué
+        run: $FLYWAY info
