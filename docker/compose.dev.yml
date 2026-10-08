@@ -1,0 +1,45 @@
+name: tgv-dev                                # préfixe distinct de la prod (sae-s5)
+
+services:
+  bdd:
+    image: mysql:8.4                         # même version que la prod (TECH001)
+    container_name: tgv-bdd-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-tgv_local}
+      MYSQL_USER: ${MYSQL_USER:-tgv_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-tgv_app}
+      TZ: Europe/Paris
+    volumes:
+      - bdd-dev-data:/var/lib/mysql          # persiste entre deux redémarrages du PC
+    ports:
+      - "127.0.0.1:3306:3306"                # joignable par l'API lancée dans l'IDE
+    healthcheck:                             # "healthy" quand MySQL accepte les connexions TCP
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  flyway:
+    image: flyway/flyway:13.9.0              # version figée : même comportement partout (pas "latest")
+    profiles: ["outils"]                     # ne démarre PAS avec "up -d", seulement avec "run"
+    depends_on:
+      bdd:
+        condition: service_healthy           # attend que MySQL accepte les connexions
+    environment:
+      # Connexion par le NOM DE SERVICE "bdd" (réseau interne du projet compose), pas localhost.
+      # permitMysqlScheme : l'image embarque le driver MariaDB, qui n'accepte une URL jdbc:mysql
+      #                     qu'avec cette option (le driver MySQL officiel n'est pas fourni).
+      # allowPublicKeyRetrieval : nécessaire à l'authentification MySQL 8 sans SSL (base locale).
+      FLYWAY_URL: jdbc:mysql://bdd:3306/${MYSQL_DATABASE:-tgv_local}?permitMysqlScheme=true&allowPublicKeyRetrieval=true
+      FLYWAY_USER: ${MYSQL_USER:-tgv_app}
+      FLYWAY_PASSWORD: ${MYSQL_PASSWORD:-tgv_app}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql  # dossier des migrations dans le conteneur
+      FLYWAY_CONNECT_RETRIES: 10             # réessaie si la base n'est pas encore prête
+    volumes:
+      - ../bdd/migrations:/flyway/sql:ro     # migrations du dépôt, en lecture seule
+    command: info                            # commande par défaut si aucune n'est précisée
+
+volumes:
+  bdd-dev-data:
