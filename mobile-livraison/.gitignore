@@ -1,0 +1,65 @@
+# ==========================================================
+# .gitignore — Application Android (Kotlin)
+# À placer dans : mobile-livraison/.gitignore
+# Les chemins sont relatifs au dossier mobile-livraison/
+# ==========================================================
+
+# --- Gradle ---
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+.gradletasknamecache
+
+# --- Fichiers de configuration locaux (propres à chaque machine) ---
+local.properties
+secrets.properties
+keystore.properties
+
+# --- Android Studio / IntelliJ ---
+*.iml
+*.ipr
+*.iws
+.idea/
+captures/
+.navigation/
+.externalNativeBuild/
+.cxx/
+
+# --- Kotlin ---
+.kotlin/
+
+# --- Fichiers générés / compilés ---
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+app/release/
+app/debug/
+
+# --- Signature (ne jamais versionner les clés) ---
+*.jks
+*.keystore
+
+# --- Logs ---
+*.log
+
+# --- Lint ---
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# --- Couverture de tests ---
+*.exec
+*.ec
+
+# --- Profilage ---
+*.hprof
+
+# --- Fichiers système ---
+.DS_Store
+Thumbs.db
+Desktop.ini
