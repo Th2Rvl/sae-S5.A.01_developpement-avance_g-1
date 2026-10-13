@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Couleurs Principales -->
+    <color name="bleu_nuit">#1C355E</color>
+    <color name="orange_tu">#C35000</color>
+    <color name="orange_vif">#FFF0E6</color>
+    <color name="survole_inactif">#E3ECF7</color>
+
+    <!-- Couleurs de fond et structure -->
+    <color name="fond">#F2F4F8</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="contour">#C7C9CC</color>
+    <color name="separateur">#E0E0E0</color>
+
+    <!-- Typographie -->
+    <color name="texte_principal">#1C355E</color>
+    <color name="texte_secondaire">#555C66</color>
+
+    <!-- Statuts -->
+    <color name="statut_a_faire_bg">#E3ECF7</color>
+    <color name="statut_a_faire_text">#1C355E</color>
+    <color name="statut_en_cours_bg">#FFF0E6</color>
+    <color name="statut_en_cours_text">#C35000</color>
+    <color name="statut_livre_bg">#E8F5E9</color>
+    <color name="statut_livre_text">#1E7E34</color>
+    <color name="statut_refuse_bg">#FFEBEE</color>
+    <color name="statut_refuse_text">#D32F2F</color>
 </resources>
