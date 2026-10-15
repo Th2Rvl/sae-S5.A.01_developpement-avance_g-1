@@ -3,7 +3,7 @@
     <!-- Couleurs Principales -->
     <color name="bleu_nuit">#1C355E</color>
     <color name="orange_tu">#C35000</color>
-    <color name="orange_vif">#FFF0E6</color>
+    <color name="orange_vif">#C35000</color>
     <color name="survole_inactif">#E3ECF7</color>
 
     <!-- Couleurs de fond et structure -->

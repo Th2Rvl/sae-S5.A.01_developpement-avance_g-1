@@ -1,3 +1,137 @@
 <resources>
-    <string name="app_name">TGV_Delivery</string>
+    <string name="app_name">Livraison</string>
+    <!-- Écran 01 - Connexion -->
+    <string name="app_acronyme">T.G.V</string>
+    <string name="app_nom_complet">Tournée Générale Véloce · Livraison</string>
+    <string name="titre_connexion">Connexion chauffeur</string>
+    <string name="hint_identifiant">Identifiant chauffeur</string>
+    <string name="hint_mot_de_passe">Mot de passe</string>
+    <string name="chk_memoriser">Mémoriser ces informations</string>
+    <string name="btn_se_connecter">Se connecter</string>
+
+    <!-- Écran 02 - Tournée du jour (Onglets) -->
+    <string name="title_tournee_jour">Tournée du jour</string>
+    <string name="tab_colis">Colis</string>
+    <string name="tab_carte">Carte</string>
+    <string name="tab_boucle">Boucle</string>
+    <string name="summary_tournee_jour">12 colis · 7 clients · 2 053 kg</string>
+    <string name="sort_trier_par">Trier par client</string>
+    <string name="badge_a_livrer">À livrer</string>
+
+    <!-- Écran 03 - Détail Colis -->
+    <string name="titre_detail_colis">Colis C-0412</string>
+    <string name="commande_ref">Commande CMD-0187</string>
+    <string name="label_poids_total">Poids total</string>
+    <string name="label_pieces">Pièces</string>
+    <string name="label_arret_no">Arrêt</string>
+    <string name="value_arret_2">n° 2</string>
+    <string name="dimensions_colis">Dimensions : 120 × 80 × 40 cm</string>
+    <string name="section_client">CLIENT</string>
+    <string name="section_pieces_emballees">PIÈCES EMBALLÉES (3)</string>
+    <string name="btn_voir_sur_carte">Voir sur la carte</string>
+
+    <!-- Écran 04 et 05 - Boucle de livraison -->
+    <string name="titre_boucle_calculee">Boucle calculée</string>
+    <string name="algo_approche_maison">Approchée — algorithme maison</string>
+    <string name="unit_km">km</string>
+    <string name="unit_arrets">arrêts</string>
+    <string name="unit_colis">colis</string>
+    <string name="btn_recalculer">Recalculer</string>
+    <string name="btn_ordre_manuel">Ordre manuel</string>
+    <string name="depart_atelier">Départ — Atelier T.G.V</string>
+    <string name="btn_valider_boucle">Valider la boucle</string>
+    <string name="summary_boucle_carte">7 arrêts · 72,1 km · départ et retour à l\'atelier</string>
+    <string name="btn_voir_ordre_passage">Voir l\'ordre de passage</string>
+
+    <!-- Écran 06 - Boîte de dialogue -->
+    <string name="dialog_title_calculer">Calculer la boucle</string>
+    <string name="dialog_desc_calculer">12 colis chez 7 clients. Le calcul est fait par le serveur ; choisissez l\'algorithme.</string>
+    <string name="algo_exacte_maison">Exacte — algorithme maison</string>
+    <string name="diff_elevee">Difficulté estimée : élevée</string>
+    <string name="algo_exacte_biblio">Exacte — bibliothèque</string>
+    <string name="diff_moyenne">Difficulté estimée : moyenne</string>
+    <string name="diff_faible">Difficulté estimée : faible</string>
+    <string name="btn_annuler">Annuler</string>
+    <string name="btn_calculer">Calculer</string>
+
+    <!-- Écran 07 - Ordre manuel -->
+    <string name="title_ordre_manuel">Ordre manuel</string>
+    <string name="info_ordre_manuel">Utilisez les flèches pour choisir l\'ordre de passage. L\'ordre de chargement sera recalculé à l\'enregistrement.</string>
+    <string name="btn_enregistrer_ordre">Enregistrer l\'ordre</string>
+
+    <!-- Noms des écrans (App Bar) -->
+    <string name="title_ordre_chargement">Ordre de chargement</string>
+    <string name="title_tournee_en_cours">Tournée en cours</string>
+    <string name="title_prochaine_livraison">Prochaine livraison</string>
+    <string name="title_bon_livraison">Bon de livraison</string>
+    <string name="title_fin_tournee">Fin de tournée</string>
+
+    <!-- Écran 08 - Ordre de chargement -->
+    <string name="info_chargement">Chargez de bas en haut, du plus lourd au plus léger. Le colis du dessus sera livré en premier.</string>
+    <string name="col_etape">Étape</string>
+    <string name="col_dessus">Dessus — déchargé en premier</string>
+    <string name="col_arret">Arrêt</string>
+    <string name="plateau_camion">Plateau du camion</string>
+    <string name="total_chargement">12 colis · 2 053 kg au total</string>
+    <string name="btn_chargement_termine">Chargement terminé — partir</string>
+
+    <!-- Écran 09 - Tournée en cours -->
+    <string name="date_tournee">Jeudi 1 octobre 2026</string>
+    <string name="progression_arret">Arrêt 3 sur 7</string>
+    <string name="progression_stats">2 livrés · 58,5 km restants</string>
+    <string name="arret_en_cours">ARRÊT EN COURS</string>
+    <string name="badge_en_cours">En cours</string>
+    <string name="btn_carte">Carte</string>
+    <string name="btn_itineraire">Itinéraire</string>
+    <string name="btn_appeler">Appeler</string>
+    <string name="titre_colis_decharger">Colis à décharger (3)</string>
+    <string name="desc_colis_decharger">Dans cet ordre, depuis le dessus de la pile</string>
+    <string name="etape_suivante">Ensuite : Bâti-Rouergue, Olemps · 6,3 km</string>
+    <string name="btn_etablir_bon">Établir le bon de livraison</string>
+    <string name="btn_etablir_bon_court">Établir le bon</string>
+
+    <!-- Écran 09b - Carte -->
+    <string name="gps_precision">GPS · précision 8 m</string>
+    <string name="distance_vol_oiseau">À 1,8 km à vol d\'oiseau</string>
+
+    <!-- Écran 10 - Bon de livraison -->
+    <string name="titre_colis_remis">Colis remis</string>
+    <string name="titre_etat_livraison">État de la livraison</string>
+    <string name="etat_conforme">Conforme</string>
+    <string name="etat_reserves">Livré avec réserves</string>
+    <string name="etat_refuse">Refusé par le client</string>
+    <string name="hint_reserves">Réserves (facultatif)</string>
+    <string name="placeholder_reserves">Ex. : emballage abîmé, pièce manquante...</string>
+    <string name="hint_receptionnaire">Nom du réceptionnaire</string>
+    <string name="info_sync_bon">Le bon est d\'abord enregistré sur l\'appareil, puis envoyé au serveur. Sans réseau, il partira à la prochaine synchronisation.</string>
+    <string name="btn_valider_bon">Valider et envoyer le bon</string>
+
+    <!-- Écran 11 - Fin de tournée -->
+    <string name="tournee_terminee">Tournée terminée</string>
+    <string name="retour_atelier">Jeudi 1 octobre 2026 · retour à l\'atelier</string>
+    <string name="stat_clients_livres">clients livrés</string>
+    <string name="stat_colis_remis">colis remis</string>
+    <string name="stat_km_parcourus">parcourus</string>
+    <string name="stat_kg_transportes">transportés</string>
+    <string name="titre_bons_livraison">Bons de livraison</string>
+    <string name="badge_envoyes">Envoyés</string>
+    <string name="desc_bons_transmis">6 bons transmis au serveur</string>
+    <string name="badge_en_attente">En attente</string>
+    <string name="desc_bon_attente">Enregistré sur l\'appareil</string>
+    <string name="btn_sync_maintenant">Synchroniser maintenant</string>
+    <string name="btn_deconnecter">Se déconnecter</string>
+
+    <!-- Écran 12 - Tiroir de navigation (Menu) -->
+    <string name="menu_header_nom">chauffeur01</string>
+    <string name="menu_header_desc">Tournée du jeudi 1 octobre</string>
+    <string name="menu_section_preparer">Préparer la tournée</string>
+    <string name="menu_item_colis">Colis à livrer</string>
+    <string name="menu_item_carte_tournee">Carte de la tournée</string>
+    <string name="menu_item_boucle">Boucle de livraison</string>
+    <string name="menu_item_ordre">Ordre de chargement</string>
+    <string name="menu_section_livrer">Livrer</string>
+    <string name="menu_item_tournee_en_cours">Tournée en cours</string>
+    <string name="menu_item_prochaine">Prochaine livraison</string>
+    <string name="menu_item_fin">Fin de tournée</string>
+    <string name="menu_item_sync">Synchroniser</string>
 </resources>

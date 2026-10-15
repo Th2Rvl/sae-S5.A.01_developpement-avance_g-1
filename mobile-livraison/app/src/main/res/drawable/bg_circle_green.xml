@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Couleur de fond pour le statut "Livré / Succès" de la charte -->
+    <solid android:color="@color/statut_livre_bg" />
+
+    <!-- Optionnel : si la couleur n'est pas encore dans votre fichier colors.xml,
+         vous pouvez utiliser directement le code hexadécimal de la charte :
+         <solid android:color="#E8F5E9" />
+    -->
+</shape>

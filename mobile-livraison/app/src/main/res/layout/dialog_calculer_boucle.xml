@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_rounded">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/dialog_title_calculer"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/dialog_desc_calculer"
+        android:textColor="#616161"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <RadioGroup
+        android:id="@+id/rg_algorithmes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Option 1 -->
+        <RadioButton
+            android:id="@+id/rb_exacte_maison"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/algo_exacte_maison"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/diff_elevee"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Option 2 -->
+        <RadioButton
+            android:id="@+id/rb_exacte_biblio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/algo_exacte_biblio"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/diff_moyenne"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Option 3 (cochée par défaut sur le visuel) -->
+        <RadioButton
+            android:id="@+id/rb_approche_maison"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/algo_approche_maison"
+            android:textStyle="bold"
+            android:checked="true" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/diff_faible"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp" />
+    </RadioGroup>
+
+    <!-- Actions (Boutons Annuler / Calculer) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="24dp">
+
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_annuler"
+            android:textColor="@color/bleu_nuit" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_calculer"
+            android:textColor="@color/bleu_nuit"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

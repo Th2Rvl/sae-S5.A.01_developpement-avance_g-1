@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Couleur de fond "En cours" (Orange clair de la charte) -->
+    <solid android:color="@color/statut_en_cours_bg" />
+
+    <!-- Coins très arrondis pour faire un effet de "pilule" / badge -->
+    <corners android:radius="16dp" />
+
+</shape>
