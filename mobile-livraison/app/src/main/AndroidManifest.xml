@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TGV_Delivery">
         <activity
-            android:name=".MainActivity"
+            android:name=".TourneeActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -21,6 +21,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BonLivraisonActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CarteLivraisonActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FinTourneeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OrdreChargementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OrdreManuelActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TourneeEnCoursActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
