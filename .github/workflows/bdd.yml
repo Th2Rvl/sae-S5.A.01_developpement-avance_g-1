@@ -60,7 +60,6 @@ jobs:
           --health-retries 10
           --health-start-period 30s
 
-
     steps:
       - name: Récupérer le code de la branche
         uses: actions/checkout@v5
@@ -115,8 +114,11 @@ jobs:
           VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
-          printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # tr -d '\r' : supprime les fins de ligne Windows éventuellement copiées avec le secret
+          printf '%s\n' "$VM_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$VM_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          # Vérifie que la clé est lisible : affiche son empreinte (publique, sans risque)
+          ssh-keygen -l -f ~/.ssh/deploy
 
       - name: Migrer la base de recette
         env:
@@ -124,7 +126,7 @@ jobs:
           VM_PORT: ${{ secrets.VM_PORT }}
           VM_USER: ${{ secrets.VM_USER }}
         # La clé est bridée côté VM : cette commande devient "sae-deploy migrer recette"
-        run: ssh -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer recette
+        run: ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer recette
 
   # ---------------------------------------------------------------------------
   # Déploiement en PRODUCTION : après un merge dans main, APRÈS approbation
@@ -142,8 +144,11 @@ jobs:
           VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
-          printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # tr -d '\r' : supprime les fins de ligne Windows éventuellement copiées avec le secret
+          printf '%s\n' "$VM_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$VM_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          # Vérifie que la clé est lisible : affiche son empreinte (publique, sans risque)
+          ssh-keygen -l -f ~/.ssh/deploy
 
       - name: Sauvegarder puis migrer la production
         env:
@@ -151,4 +156,4 @@ jobs:
           VM_PORT: ${{ secrets.VM_PORT }}
           VM_USER: ${{ secrets.VM_USER }}
         # Le guichet lance sauvegarde.sh AVANT la migration de prod
-        run: ssh -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer prod
+        run: ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer prod
