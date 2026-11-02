@@ -16,9 +16,9 @@ on:
 permissions:
   contents: read                      # le workflow ne fait que lire le dépôt
 
-concurrency:                          # un nouveau push annule l'exécution en cours de la même branche
+concurrency:
   group: bdd-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}   # on n'annule jamais un déploiement
 
 env:
   FLYWAY_IMAGE: flyway/flyway:13.9.0  # même version qu'en local
@@ -60,6 +60,7 @@ jobs:
           --health-retries 10
           --health-start-period 30s
 
+
     steps:
       - name: Récupérer le code de la branche
         uses: actions/checkout@v5
@@ -97,3 +98,57 @@ jobs:
       - name: État final de la base
         if: always()                  # affiché même si une étape précédente a échoué
         run: $FLYWAY info
+
+  # ---------------------------------------------------------------------------
+  # Déploiement en RECETTE : après un merge dans api-dev, si les tests sont verts
+  # ---------------------------------------------------------------------------
+  deploiement-recette:
+    name: Déploiement recette
+    needs: migrations                       # seulement si la CI est verte
+    if: github.event_name == 'push' && github.ref == 'refs/heads/api-dev'
+    runs-on: ubuntu-latest
+    environment: recette
+    steps:
+      - name: Préparer la connexion SSH
+        env:                                # secrets passés par variables, jamais inline
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Migrer la base de recette
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_PORT: ${{ secrets.VM_PORT }}
+          VM_USER: ${{ secrets.VM_USER }}
+        # La clé est bridée côté VM : cette commande devient "sae-deploy migrer recette"
+        run: ssh -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer recette
+
+  # ---------------------------------------------------------------------------
+  # Déploiement en PRODUCTION : après un merge dans main, APRÈS approbation
+  # ---------------------------------------------------------------------------
+  deploiement-prod:
+    name: Déploiement production
+    needs: migrations
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production                 # attend l'approbation manuelle
+    steps:
+      - name: Préparer la connexion SSH
+        env:
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Sauvegarder puis migrer la production
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_PORT: ${{ secrets.VM_PORT }}
+          VM_USER: ${{ secrets.VM_USER }}
+        # Le guichet lance sauvegarde.sh AVANT la migration de prod
+        run: ssh -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer prod
