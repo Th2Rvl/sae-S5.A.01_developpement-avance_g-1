@@ -70,6 +70,15 @@
             <scope>runtime</scope>
         </dependency> -->
 
+        <!-- Migrations Flyway appliquées au démarrage de l'API (avant la validation JPA) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>   <!-- support MySQL, séparé du cœur depuis Flyway 10 -->
+        </dependency>
 
         <!-- Dev -->
         <dependency>
@@ -103,6 +112,33 @@
     </dependencies>
 
     <build>
+        <!-- Redéfinir <resources> remplace celles du parent : on reprend les deux blocs de
+             spring-boot-starter-parent (filtrage des fichiers application*) puis on ajoute
+             les migrations du dépôt, copiées dans le jar sous db/migration.
+             bdd/migrations reste la seule source (utilisée aussi par la CI et le compose). -->
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/application*.yml</include>
+                    <include>**/application*.yaml</include>
+                    <include>**/application*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <excludes>
+                    <exclude>**/application*.yml</exclude>
+                    <exclude>**/application*.yaml</exclude>
+                    <exclude>**/application*.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>${basedir}/../../bdd/migrations</directory>
+                <targetPath>db/migration</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

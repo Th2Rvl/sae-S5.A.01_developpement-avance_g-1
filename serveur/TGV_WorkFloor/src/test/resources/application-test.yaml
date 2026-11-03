@@ -1,0 +1,11 @@
+# Profil "test" : base H2 en mémoire, aucune dépendance au MySQL local.
+spring:
+  datasource:
+    url: jdbc:h2:mem:tgv_test;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  flyway:
+    enabled: false                     # migrations écrites pour MySQL : vérifiées par la CI bdd.yml
+  jpa:
+    hibernate:
+      ddl-auto: create-drop            # schéma généré depuis les entités pour chaque contexte de test
