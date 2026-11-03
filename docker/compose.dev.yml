@@ -22,7 +22,7 @@ services:
       start_period: 30s
 
   flyway:
-    image: flyway/flyway:13.9.0              # version figée : même comportement partout (pas "latest")
+    image: flyway/flyway:12.4.0              # version figée : même comportement partout (pas "latest")
     profiles: ["outils"]                     # ne démarre PAS avec "up -d", seulement avec "run"
     depends_on:
       bdd:

@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}   # on n'annule jamais un déploiement
 
 env:
-  FLYWAY_IMAGE: flyway/flyway:13.9.0  # même version qu'en local
+  FLYWAY_IMAGE: flyway/flyway:12.4.0  # même version qu'en local
   # Variables lues automatiquement par Flyway (transmises au conteneur avec "-e NOM")
   FLYWAY_URL: jdbc:mysql://127.0.0.1:3306/tgv_ci?permitMysqlScheme=true&allowPublicKeyRetrieval=true
   FLYWAY_USER: tgv_app
@@ -35,7 +35,7 @@ env:
     -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS
     -e FLYWAY_CONNECT_RETRIES -e FLYWAY_VALIDATE_MIGRATION_NAMING
     -v ${{ github.workspace }}/bdd/migrations:/flyway/sql:ro
-    flyway/flyway:13.9.0
+    flyway/flyway:12.4.0
 
 jobs:
   migrations:
