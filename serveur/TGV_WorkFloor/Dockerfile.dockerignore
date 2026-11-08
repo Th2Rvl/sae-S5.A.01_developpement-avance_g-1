@@ -1,0 +1,9 @@
+# Seuls bdd/migrations et serveur/TGV_WorkFloor servent au build de l'API
+.git
+.github
+mobile-livraison
+docs
+docker
+**/target
+**/.idea
+**/*.iml
