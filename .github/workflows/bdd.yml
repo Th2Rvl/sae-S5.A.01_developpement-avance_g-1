@@ -11,6 +11,7 @@ on:
     branches: [api-dev, main]
     paths:
       - 'bdd/**'
+      - 'serveur/**'
       - '.github/workflows/bdd.yml'
 
 permissions:
