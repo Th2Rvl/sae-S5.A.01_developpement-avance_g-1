@@ -177,11 +177,19 @@ class TourneeApiTest {
                 .andExpect(jsonPath("$.statut", is("EN_COURS")))
                 .andExpect(jsonPath("$.arrets[0].livre", is(true)));
 
+        String date = json.replaceAll("(?s).*?\"date\":\"([0-9-]+)\".*", "$1");
         mvc.perform(post("/api/tournees/" + id + "/fin").with(httpBasic("chauffeur01", "1234")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statut", is("TERMINEE")));
+        // les colis des 6 clients sans bon ne sont pas livrés : reportés au jeudi suivant, dans une nouvelle tournée
         mvc.perform(get("/api/tournees/courante").with(httpBasic("chauffeur01", "1234")))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date", is(java.time.LocalDate.parse(date).plusWeeks(1).toString())))
+                .andExpect(jsonPath("$.statut", is("PREVUE")))
+                .andExpect(jsonPath("$.nbClients", is(6)))
+                .andExpect(jsonPath("$.colis[0].reporte", is(true)))
+                .andExpect(jsonPath("$.colis[0].dateLivraisonPrevue",
+                        is(java.time.LocalDate.parse(date).plusWeeks(1).toString())));
     }
 
     private long idTourneeCourante() throws Exception {

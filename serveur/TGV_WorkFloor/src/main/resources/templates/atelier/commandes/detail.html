@@ -14,7 +14,7 @@
             <p>
                 <strong th:text="${commande.client.nom}">Métallerie Causse</strong> ·
                 <span th:text="${commande.client.adresseComplete}">12 rue des Forges, 12850 Onet-le-Château</span> ·
-                livraison prévue le <span th:text="${#temporals.format(commande.datePrevue, 'EEEE d MMMM yyyy')}">jeudi</span>
+                livraison souhaitée le <span th:text="${#temporals.format(commande.datePrevue, 'EEEE d MMMM yyyy')}">jeudi</span>
             </p>
         </div>
         <div class="actions">
@@ -91,7 +91,7 @@
         <h2>Colis</h2>
         <div class="tableau-conteneur">
             <table>
-                <thead><tr><th>Colis</th><th>Pièces emballées</th><th>Dimensions</th><th class="droite">Poids</th><th>Statut</th><th>Tournée</th><th></th></tr></thead>
+                <thead><tr><th>Colis</th><th>Pièces emballées</th><th>Dimensions</th><th class="droite">Poids</th><th>Statut</th><th>Livraison</th><th>Tournée</th><th></th></tr></thead>
                 <tbody>
                 <tr th:each="c : ${commande.colis}">
                     <td class="mono" th:text="${c.reference}">C-0412</td>
@@ -99,6 +99,7 @@
                     <td class="nowrap" th:text="${c.dimensions}">120 × 80 × 40 cm</td>
                     <td class="droite nowrap" th:text="${#numbers.formatDecimal(c.poidsKg, 1, 'WHITESPACE', 1, 'COMMA')} + ' kg'">62 kg</td>
                     <td><span class="chip" th:classappend="${c.statut.name()}" th:text="${c.statut.libelle}">À livrer</span></td>
+                    <td th:replace="~{fragments/layout :: livraison(${c})}"></td>
                     <td>
                         <a th:if="${c.tournee != null}" th:href="@{/atelier/tournees/{id}(id=${c.tournee.id})}"
                            th:text="${#temporals.format(c.tournee.date, 'd MMM yyyy')}">1 oct. 2026</a>
@@ -112,12 +113,14 @@
                         </form>
                     </td>
                 </tr>
-                <tr th:if="${commande.colis.isEmpty()}"><td class="vide" colspan="7">Aucun colis pour cette commande.</td></tr>
+                <tr th:if="${commande.colis.isEmpty()}"><td class="vide" colspan="8">Aucun colis pour cette commande.</td></tr>
                 </tbody>
             </table>
         </div>
 
         <h3 style="margin-top:20px">Emballer des pièces fabriquées</h3>
+        <p class="secondaire petit" th:unless="${commande.piecesAEmballer.isEmpty()}">Le colis sera disponible
+            aujourd'hui et placé automatiquement dans la tournée du lendemain (jour ouvré).</p>
         <p class="secondaire petit" th:if="${commande.piecesAEmballer.isEmpty()}">
             Aucune pièce fabriquée en attente d'emballage. Passez une pièce à l'état « Fabriquée » pour pouvoir l'emballer.</p>
         <form class="formulaire" method="post" th:unless="${commande.piecesAEmballer.isEmpty()}"

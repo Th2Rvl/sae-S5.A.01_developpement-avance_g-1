@@ -26,12 +26,15 @@ public class CommandeService {
     private final PieceDepot pieces;
     private final ColisDepot colis;
     private final ClientService clientService;
+    private final TourneeService tourneeService;
 
-    public CommandeService(CommandeDepot commandes, PieceDepot pieces, ColisDepot colis, ClientService clientService) {
+    public CommandeService(CommandeDepot commandes, PieceDepot pieces, ColisDepot colis, ClientService clientService,
+                           TourneeService tourneeService) {
         this.commandes = commandes;
         this.pieces = pieces;
         this.colis = colis;
         this.clientService = clientService;
+        this.tourneeService = tourneeService;
     }
 
     // ------------------------------------------------------------------ commandes
@@ -140,7 +143,10 @@ public class CommandeService {
         return colis.findAll();
     }
 
-    /** Emballe des pièces fabriquées (d'une même commande) dans un nouveau colis. */
+    /**
+     * Emballe des pièces fabriquées (d'une même commande) dans un nouveau colis. Le colis est disponible
+     * aujourd'hui : il est aussitôt placé dans la tournée du lendemain (jour ouvré).
+     */
     public synchronized Colis emballer(Long commandeId, Collection<Long> pieceIds, int longueurCm, int largeurCm,
                                        int hauteurCm) {
         Commande commande = trouver(commandeId);
@@ -170,6 +176,10 @@ public class CommandeService {
             nouveau.getPieces().add(p);
         }
         commande.getColis().add(nouveau);
+        LocalDate aujourdhui = LocalDate.now();
+        nouveau.setDateDisponibilite(aujourdhui);
+        nouveau.setDateLivraisonPrevue(PlanificationLivraisons.livraisonColisNeuf(aujourdhui));
+        tourneeService.planifier(nouveau);
         return nouveau;
     }
 
@@ -180,10 +190,7 @@ public class CommandeService {
     }
 
     private void supprimerColisSansControle(Colis c) {
-        if (c.getTournee() != null) {
-            c.getTournee().getColis().remove(c);
-            c.getTournee().effacerBoucle();
-        }
+        tourneeService.retirerDuPlanning(c);
         c.getPieces().forEach(p -> p.setColis(null));
         c.getCommande().getColis().remove(c);
         colis.delete(c);

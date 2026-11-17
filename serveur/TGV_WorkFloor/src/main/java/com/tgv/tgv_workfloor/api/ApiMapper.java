@@ -40,14 +40,15 @@ final class ApiMapper {
     static Dto.ColisResume colisResume(Colis c) {
         return new Dto.ColisResume(c.getId(), c.getReference(), c.getStatut().name(), c.getStatut().getLibelle(),
                 c.getClient().getId(), c.getClient().getNom(), c.getClient().getVille(), c.getPieces().size(),
-                arrondi(c.getPoidsKg()), numeroArret(c));
+                arrondi(c.getPoidsKg()), numeroArret(c), c.getDateLivraisonPrevue(), c.isReporte());
     }
 
     static Dto.ColisDetail colisDetail(Colis c) {
         return new Dto.ColisDetail(c.getId(), c.getReference(), c.getStatut().name(), c.getStatut().getLibelle(),
                 c.getCommande().getReference(), arrondi(c.getPoidsKg()), c.getPieces().size(), numeroArret(c),
                 c.getLongueurCm(), c.getLargeurCm(), c.getHauteurCm(), client(c.getClient()),
-                c.getPieces().stream().map(ApiMapper::piece).toList());
+                c.getPieces().stream().map(ApiMapper::piece).toList(), c.getDateDisponibilite(),
+                c.getDateLivraisonPrevue(), c.isReporte());
     }
 
     static Dto.BonDto bon(BonLivraison b) {

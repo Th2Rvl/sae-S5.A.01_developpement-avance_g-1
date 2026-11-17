@@ -17,6 +17,7 @@ import com.tgv.tgv_workfloor.modele.Piece;
 import com.tgv.tgv_workfloor.modele.Role;
 import com.tgv.tgv_workfloor.modele.Tournee;
 import com.tgv.tgv_workfloor.modele.Utilisateur;
+import com.tgv.tgv_workfloor.service.PlanificationLivraisons;
 import com.tgv.tgv_workfloor.service.TourneeService;
 import com.tgv.tgv_workfloor.service.UtilisateurService;
 import org.slf4j.Logger;
@@ -154,7 +155,8 @@ public class DonneesStatiques implements ApplicationRunner {
         Tournee prochaine = tournees.preparer(jeudi);
         tournees.calculer(prochaine.getId(), Algorithme.EXACT_MAISON);
 
-        // --- Commandes en fabrication (pas encore livrables)
+        // --- Commandes en fabrication (pas encore livrables). Le batardeau P-2063 est fabriqué : l'emballer
+        // depuis l'Atelier le place automatiquement dans la tournée du lendemain (jour ouvré).
         Commande c192 = commande("CMD-0192", bousquet, jeudi.plusWeeks(1));
         piece("P-2060", "Garde-corps 2 m", 65, c192).setEtat(EtatPiece.EN_FABRICATION);
         piece("P-2061", "Garde-corps 1,5 m", 50, c192);
@@ -183,9 +185,14 @@ public class DonneesStatiques implements ApplicationRunner {
         return p;
     }
 
-    /** Colis emballant des pièces, qui passent donc à l'état « fabriquée ». */
+    /**
+     * Colis emballant des pièces, qui passent donc à l'état « fabriquée ». Il est emballé la veille de la date
+     * prévue de la commande (un mercredi) : la règle de planification le fait donc partir le jeudi.
+     */
     private void colis(String reference, Commande commande, int l, int la, int h, Piece... contenu) {
         Colis c = colis.save(new Colis(reference, commande, l, la, h));
+        c.setDateDisponibilite(commande.getDatePrevue().minusDays(1));
+        c.setDateLivraisonPrevue(PlanificationLivraisons.livraisonColisNeuf(c.getDateDisponibilite()));
         for (Piece p : contenu) {
             p.setEtat(EtatPiece.FABRIQUEE);
             p.setColis(c);

@@ -7,11 +7,11 @@
         <div class="interieur">
             <span class="logo" th:insert="~{fragments/layout :: camion}"></span>
             <h1>T.G.V</h1>
-            <p>Tournée Générale Véloce · Atelier</p>
+            <p>Tournée Générale Véloce · Atelier et chauffeurs</p>
         </div>
     </div>
     <div class="corps-connexion">
-        <h2>Connexion atelier</h2>
+        <h2>Connexion atelier / chauffeur</h2>
         <div class="alerte erreur" th:if="${param.erreur}">Identifiant ou mot de passe incorrect.</div>
         <div class="alerte info" th:if="${param.deconnecte}">Vous êtes déconnecté.</div>
         <form class="formulaire" th:action="@{/connexion}" method="post">
@@ -25,8 +25,9 @@
             </div>
             <button type="submit" class="principal">Se connecter</button>
         </form>
-        <p class="secondaire petit">Mode statique : compte de démonstration <span class="mono">atelier</span> /
-            <span class="mono">atelier</span>.</p>
+        <p class="secondaire petit">Mode statique, comptes de démonstration : atelier
+            <span class="mono">atelier</span> / <span class="mono">atelier</span>, chauffeur
+            <span class="mono">chauffeur01</span> / <span class="mono">1234</span> (espace chauffeur pour téléphone).</p>
     </div>
 </div>
 </body>
