@@ -4,8 +4,8 @@ import com.tgv.tgv_workfloor.exception.RegleMetierException;
 import com.tgv.tgv_workfloor.exception.RessourceIntrouvableException;
 import com.tgv.tgv_workfloor.modele.Algorithme;
 import com.tgv.tgv_workfloor.modele.Arret;
-import com.tgv.tgv_workfloor.modele.BonLivraison;
-import com.tgv.tgv_workfloor.modele.EtatBon;
+import com.tgv.tgv_workfloor.modele.Client;
+import com.tgv.tgv_workfloor.modele.Colis;
 import com.tgv.tgv_workfloor.modele.Tournee;
 import com.tgv.tgv_workfloor.modele.Utilisateur;
 import com.tgv.tgv_workfloor.service.TourneeService;
@@ -21,19 +21,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * Espace chauffeur du site, pensé pour le téléphone : tournée à effectuer, calcul ou ajustement de la boucle,
- * validation du chargement, bons de livraison à chaque arrêt et fin de tournée (mêmes règles que l'API mobile).
+ * Espace chauffeur du site, calqué sur les maquettes « 1 · Préparer la tournée » :
+ * tournée du jour (onglets Colis, Carte, Boucle), détail d'un colis, calcul de la boucle, ordre manuel
+ * et validation de la boucle. Mêmes règles métier que l'API de l'application Android.
  */
 @Controller
 @RequestMapping("/chauffeur")
 public class ChauffeurWebController {
-
-    private static final String RETOUR = "redirect:/chauffeur";
 
     private final TourneeService tournees;
     private final UtilisateurService utilisateurs;
@@ -43,100 +43,126 @@ public class ChauffeurWebController {
         this.utilisateurs = utilisateurs;
     }
 
+    /** Maquette 02 · onglet Colis (et page d'arrivée, y compris quand aucune tournée n'est à effectuer). */
     @GetMapping
-    public String tourneeCourante(Model model) {
-        Tournee tournee;
-        try {
-            tournee = tournees.courante();
-        } catch (RessourceIntrouvableException aucune) {
-            model.addAttribute("tournee", null);
-            return "chauffeur/tournee";
+    public String colis(@RequestParam(defaultValue = "client") String tri, Model model) {
+        Optional<Tournee> courante = courante();
+        model.addAttribute("tournee", courante.orElse(null));
+        if (courante.isEmpty()) {
+            return "chauffeur/colis";
         }
+        Tournee tournee = courante.get();
+        boolean parOrdre = "ordre".equals(tri) && tournee.isBoucleCalculee();
+        List<Client> clients = parOrdre ? tournee.getArrets().stream().map(Arret::getClient).toList()
+                : tournee.getClients();
+        List<Colis> colis = new ArrayList<>();
+        clients.forEach(c -> colis.addAll(tournee.colisDuClient(c)));
+        model.addAttribute("colis", colis);
+        model.addAttribute("tri", parOrdre ? "ordre" : "client");
+        return "chauffeur/colis";
+    }
+
+    /** Maquette 03 · détail d'un colis de la tournée. */
+    @GetMapping("/colis/{id}")
+    public String detail(@PathVariable Long id, Model model, RedirectAttributes redirection) {
+        Optional<Tournee> courante = courante();
+        Optional<Colis> colis = courante.flatMap(t -> t.getColis().stream().filter(c -> c.getId().equals(id)).findFirst());
+        if (colis.isEmpty()) {
+            redirection.addFlashAttribute("erreur", "Ce colis ne fait pas partie de la tournée du jour.");
+            return "redirect:/chauffeur";
+        }
+        model.addAttribute("colis", colis.get());
+        model.addAttribute("arret", courante.get().arretDuClient(colis.get().getClient()).orElse(null));
+        return "chauffeur/detail";
+    }
+
+    /** Maquette 04 · onglet Carte ; {@code client} centre la carte sur ce client (« Voir sur la carte »). */
+    @GetMapping("/carte")
+    public String carte(@RequestParam(required = false) Long client, Model model) {
+        Optional<Tournee> courante = courante();
+        if (courante.isEmpty()) {
+            return "redirect:/chauffeur";
+        }
+        model.addAttribute("tournee", courante.get());
+        model.addAttribute("carte", CarteTournee.donnees(courante.get(), client));
+        return "chauffeur/carte";
+    }
+
+    /** Maquettes 05 et 06 · onglet Boucle et dialogue « Calculer la boucle ». */
+    @GetMapping("/boucle")
+    public String boucle(Model model) {
+        Optional<Tournee> courante = courante();
+        if (courante.isEmpty()) {
+            return "redirect:/chauffeur";
+        }
+        Tournee tournee = courante.get();
         boolean aDesColis = !tournee.getColis().isEmpty();
         model.addAttribute("tournee", tournee);
         model.addAttribute("estimations", aDesColis ? tournees.estimer(tournee.getId()) : List.of());
-        model.addAttribute("nbOrdresPossibles", aDesColis ? tournees.nombreOrdresPossibles(tournee.getId()) : 0);
         model.addAttribute("conflits", aDesColis ? tournees.conflitsDeMasses(tournee.getId()) : List.of());
-        model.addAttribute("carte", CarteTournee.donnees(tournee));
-        model.addAttribute("chargementHautEnBas", CarteTournee.chargementHautEnBas(tournee));
-        model.addAttribute("etatsBon", EtatBon.values());
-        return "chauffeur/tournee";
+        return "chauffeur/boucle";
+    }
+
+    /** Maquette 07 · ordre manuel, à partir de la boucle calculée (ou des clients si elle ne l'est pas encore). */
+    @GetMapping("/ordre")
+    public String ordre(Model model) {
+        Optional<Tournee> courante = courante();
+        if (courante.isEmpty()) {
+            return "redirect:/chauffeur";
+        }
+        Tournee tournee = courante.get();
+        if (tournee.getStatut().estFigee()) {
+            return "redirect:/chauffeur/boucle";
+        }
+        model.addAttribute("tournee", tournee);
+        model.addAttribute("clients", tournee.isBoucleCalculee()
+                ? tournee.getArrets().stream().map(Arret::getClient).toList() : tournee.getClients());
+        return "chauffeur/ordre";
     }
 
     @PostMapping("/tournees/{id}/calcul")
     public String calculer(@PathVariable Long id, @RequestParam Algorithme algorithme, RedirectAttributes redirection) {
-        return executer(redirection, () -> {
+        return executer(redirection, "redirect:/chauffeur/boucle", "redirect:/chauffeur/boucle", () -> {
             Tournee t = tournees.calculer(id, algorithme);
             return String.format(Locale.FRANCE, "Boucle calculée : %.1f km.", t.getDistanceTotaleKm());
         });
     }
 
-    /** Échange un arrêt avec son voisin (sens -1 : plus tôt, +1 : plus tard) ; seuls les arrêts de masses identiques le peuvent. */
-    @PostMapping("/tournees/{id}/arrets/{ordre}/deplacement")
-    public String deplacer(@PathVariable Long id, @PathVariable int ordre, @RequestParam int sens,
-                           RedirectAttributes redirection) {
-        return executer(redirection, () -> {
-            Tournee tournee = tournees.trouver(id);
-            List<Long> clients = new ArrayList<>(tournee.getArrets().stream().map(a -> a.getClient().getId()).toList());
-            int i = ordre - 1;
-            int j = i + Integer.signum(sens);
-            if (i < 0 || j < 0 || i >= clients.size() || j >= clients.size()) {
-                throw new RegleMetierException("Cet arrêt ne peut pas être déplacé dans ce sens.");
-            }
-            Collections.swap(clients, i, j);
-            tournees.ordreManuel(id, clients);
-            return "Ordre de passage modifié.";
+    @PostMapping("/tournees/{id}/ordre")
+    public String enregistrerOrdre(@PathVariable Long id, @RequestParam List<Long> clientIds,
+                                   RedirectAttributes redirection) {
+        return executer(redirection, "redirect:/chauffeur/boucle", "redirect:/chauffeur/ordre", () -> {
+            tournees.ordreManuel(id, clientIds);
+            return "Ordre de passage enregistré.";
         });
     }
 
     @PostMapping("/tournees/{id}/validation")
     public String valider(@PathVariable Long id, Principal principal, RedirectAttributes redirection) {
-        return executer(redirection, () -> {
-            tournees.valider(id, connecte(principal));
-            return "Boucle et chargement validés : bonne route !";
+        return executer(redirection, "redirect:/chauffeur/boucle", "redirect:/chauffeur/boucle", () -> {
+            Utilisateur chauffeur = utilisateurs.parIdentifiant(principal.getName())
+                    .orElseThrow(() -> new RegleMetierException("Utilisateur connecté inconnu."));
+            tournees.valider(id, chauffeur);
+            return "Boucle validée.";
         });
     }
 
-    @PostMapping("/tournees/{id}/bons")
-    public String enregistrerBon(@PathVariable Long id, @RequestParam Long clientId,
-                                 @RequestParam(required = false) List<Long> colisIds, @RequestParam EtatBon etat,
-                                 @RequestParam(required = false) String commentaire, Principal principal,
-                                 RedirectAttributes redirection) {
-        return executer(redirection, () -> {
-            if (etat != EtatBon.REFUSE && (colisIds == null || colisIds.isEmpty())) {
-                throw new RegleMetierException("Cochez les colis remis au client (ou choisissez « Refusé »).");
-            }
-            BonLivraison bon = tournees.enregistrerBon(id, clientId, colisIds, etat, commentaire, connecte(principal));
-            return "Bon " + bon.getNumero() + " enregistré (" + bon.getEtat().getLibelle().toLowerCase() + ").";
-        });
-    }
-
-    @PostMapping("/tournees/{id}/fin")
-    public String terminer(@PathVariable Long id, RedirectAttributes redirection) {
-        return executer(redirection, () -> {
-            Tournee t = tournees.terminer(id);
-            long nonLivres = t.getArrets().stream().map(Arret::getClient).filter(c -> t.bonDuClient(c).isEmpty()).count();
-            return nonLivres == 0 ? "Tournée terminée."
-                    : "Tournée terminée : les colis de " + nonLivres + " client(s) non livré(s) sont reportés au jeudi suivant.";
-        });
-    }
-
-    private Utilisateur connecte(Principal principal) {
-        return utilisateurs.parIdentifiant(principal.getName())
-                .orElseThrow(() -> new RegleMetierException("Utilisateur connecté inconnu."));
-    }
-
-    private static String executer(RedirectAttributes redirection, Action action) {
+    private Optional<Tournee> courante() {
         try {
-            redirection.addFlashAttribute("succes", action.executer());
+            return Optional.of(tournees.courante());
+        } catch (RessourceIntrouvableException aucune) {
+            return Optional.empty();
+        }
+    }
+
+    private static String executer(RedirectAttributes redirection, String siSucces, String siErreur,
+                                   Supplier<String> action) {
+        try {
+            redirection.addFlashAttribute("succes", action.get());
+            return siSucces;
         } catch (RegleMetierException e) {
             redirection.addFlashAttribute("erreur", e.getMessage());
+            return siErreur;
         }
-        return RETOUR;
-    }
-
-    @FunctionalInterface
-    private interface Action {
-        String executer();
     }
 }

@@ -2,32 +2,34 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Connexion')}"></head>
 <body>
-<div class="page-connexion">
+<!-- Maquette 01 · Connexion -->
+<div class="ecran ecran-connexion">
     <div class="bandeau-connexion">
-        <div class="interieur">
-            <span class="logo" th:insert="~{fragments/layout :: camion}"></span>
-            <h1>T.G.V</h1>
-            <p>Tournée Générale Véloce · Atelier et chauffeurs</p>
-        </div>
+        <span class="logo" th:insert="~{fragments/layout :: camion}"></span>
+        <h1>T.G.V</h1>
+        <p>Tournée Générale Véloce · Livraison</p>
     </div>
     <div class="corps-connexion">
-        <h2>Connexion atelier / chauffeur</h2>
-        <div class="alerte erreur" th:if="${param.erreur}">Identifiant ou mot de passe incorrect.</div>
-        <div class="alerte info" th:if="${param.deconnecte}">Vous êtes déconnecté.</div>
-        <form class="formulaire" th:action="@{/connexion}" method="post">
+        <h2>Connexion chauffeur</h2>
+        <form th:action="@{/connexion}" method="post">
+            <div class="alerte erreur" th:if="${param.erreur}" role="alert">Identifiant ou mot de passe incorrect.</div>
+            <div class="alerte erreur" th:if="${param.nonChauffeur}" role="alert">Ce compte n'est pas un compte chauffeur.</div>
+            <div class="alerte info" th:if="${param.deconnecte}" role="status">Vous êtes déconnecté.</div>
             <div class="champ">
-                <label for="identifiant">Identifiant</label>
+                <label for="identifiant">Identifiant chauffeur</label>
                 <input id="identifiant" name="identifiant" autocomplete="username" required autofocus>
             </div>
             <div class="champ">
                 <label for="motDePasse">Mot de passe</label>
                 <input id="motDePasse" name="motDePasse" type="password" autocomplete="current-password" required>
             </div>
-            <button type="submit" class="principal">Se connecter</button>
+            <label class="case">
+                <input type="checkbox" name="memoriser" checked>
+                <span>Mémoriser ces informations</span>
+            </label>
+            <div class="pousse"></div>
+            <button type="submit" class="principal pleine-largeur">Se connecter</button>
         </form>
-        <p class="secondaire petit">Mode statique, comptes de démonstration : atelier
-            <span class="mono">atelier</span> / <span class="mono">atelier</span>, chauffeur
-            <span class="mono">chauffeur01</span> / <span class="mono">1234</span> (espace chauffeur pour téléphone).</p>
     </div>
 </div>
 </body>

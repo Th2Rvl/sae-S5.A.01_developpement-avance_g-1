@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import java.nio.charset.StandardCharsets;
 
@@ -21,18 +23,19 @@ import java.nio.charset.StandardCharsets;
  * <ul>
  *   <li>/api/** (application mobile, Volley) : sans état, authentification HTTP Basic à chaque requête,
  *       réponses d'erreur en JSON ;</li>
- *   <li>le reste du site : formulaire de connexion et session ; /atelier exige le rôle ATELIER, /chauffeur
- *       (espace chauffeur pour téléphone) le rôle CHAUFFEUR. Après connexion, chacun arrive dans son espace.</li>
+ *   <li>le reste du site : l'espace chauffeur (maquette 01 · « Connexion chauffeur »), formulaire de connexion
+ *       et session, avec « Mémoriser ces informations » (cookie remember-me). Seuls les chauffeurs peuvent
+ *       s'y connecter.</li>
  * </ul>
  */
 @Configuration
 public class SecurityConfig {
 
-    /** Page d'arrivée après connexion : l'espace chauffeur pour un chauffeur, l'interface Atelier sinon. */
-    public static String accueilSelonRole(Authentication authentification) {
-        boolean chauffeur = authentification != null && authentification.getAuthorities().stream()
+    private static final String COOKIE_MEMORISER = "remember-me";
+
+    private static boolean estChauffeur(Authentication authentification) {
+        return authentification != null && authentification.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_CHAUFFEUR".equals(a.getAuthority()));
-        return chauffeur ? "/chauffeur" : "/atelier";
     }
 
     @Bean
@@ -66,7 +69,6 @@ public class SecurityConfig {
         http.authorizeHttpRequests(a -> a
                         .requestMatchers("/", "/connexion", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/error")
                         .permitAll()
-                        .requestMatchers("/atelier/**").hasRole("ATELIER")
                         .requestMatchers("/chauffeur/**").hasRole("CHAUFFEUR")
                         .anyRequest().authenticated())
                 .formLogin(f -> f
@@ -74,10 +76,22 @@ public class SecurityConfig {
                         .loginProcessingUrl("/connexion")
                         .usernameParameter("identifiant")
                         .passwordParameter("motDePasse")
-                        .successHandler((requete, reponse, authentification) -> reponse.sendRedirect(
-                                requete.getContextPath() + accueilSelonRole(authentification)))
+                        .successHandler((requete, reponse, authentification) -> {
+                            if (estChauffeur(authentification)) {
+                                reponse.sendRedirect(requete.getContextPath() + "/chauffeur");
+                                return;
+                            }
+                            // un compte atelier ne peut pas ouvrir de session sur l'espace chauffeur
+                            new SecurityContextLogoutHandler().logout(requete, reponse, authentification);
+                            new CookieClearingLogoutHandler(COOKIE_MEMORISER).logout(requete, reponse, authentification);
+                            reponse.sendRedirect(requete.getContextPath() + "/connexion?nonChauffeur");
+                        })
                         .failureUrl("/connexion?erreur")
                         .permitAll())
+                .rememberMe(r -> r
+                        .key("tgv-espace-chauffeur")
+                        .rememberMeParameter("memoriser")
+                        .rememberMeCookieName(COOKIE_MEMORISER))
                 .logout(l -> l
                         .logoutUrl("/deconnexion")
                         .logoutSuccessUrl("/connexion?deconnecte"));

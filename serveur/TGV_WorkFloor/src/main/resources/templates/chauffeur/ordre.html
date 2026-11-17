@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ordre manuel')}"></head>
+<body>
+<!-- Maquette 07 · Ordre manuel -->
+<form class="ecran etroit" method="post" th:action="@{/chauffeur/tournees/{id}/ordre(id=${tournee.id})}">
+    <header th:replace="~{fragments/layout :: barre-retour('Ordre manuel', '/chauffeur/boucle')}"></header>
+    <main class="contenu">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <div class="alerte info">Utilisez les flèches pour choisir l'ordre de passage. L'ordre de chargement sera
+            recalculé à l'enregistrement.</div>
+        <ol class="carte arrets" id="ordre" style="margin: 0;">
+            <li class="ordre" th:each="cl, it : ${clients}">
+                <input type="hidden" name="clientIds" th:value="${cl.id}">
+                <span class="numero" th:text="${it.count}">1</span>
+                <span>
+                    <strong th:text="${cl.nom}">Garage Fabre PL</strong>
+                    <span class="secondaire" th:text="${cl.ville}">Sébazac-Concourès</span>
+                </span>
+                <button type="button" class="icone" data-sens="-1" aria-label="Livrer plus tôt"
+                        th:disabled="${it.first}" th:insert="~{fragments/layout :: haut}"></button>
+                <button type="button" class="icone" data-sens="1" aria-label="Livrer plus tard"
+                        th:disabled="${it.last}" th:insert="~{fragments/layout :: bas}"></button>
+            </li>
+        </ol>
+    </main>
+    <div class="bas">
+        <button type="submit" class="principal pleine-largeur">Enregistrer l'ordre</button>
+    </div>
+</form>
+<script>
+    // Les flèches échangent un client avec son voisin ; l'ordre des champs cachés est celui envoyé au serveur.
+    (function () {
+        var liste = document.getElementById('ordre');
+        function renumeroter() {
+            var lignes = liste.children;
+            for (var i = 0; i < lignes.length; i++) {
+                lignes[i].querySelector('.numero').textContent = i + 1;
+                lignes[i].querySelector('[data-sens="-1"]').disabled = i === 0;
+                lignes[i].querySelector('[data-sens="1"]').disabled = i === lignes.length - 1;
+            }
+        }
+        liste.addEventListener('click', function (e) {
+            var bouton = e.target.closest('button[data-sens]');
+            if (!bouton) {
+                return;
+            }
+            var ligne = bouton.closest('li');
+            if (bouton.getAttribute('data-sens') === '-1' && ligne.previousElementSibling) {
+                liste.insertBefore(ligne, ligne.previousElementSibling);
+            } else if (bouton.getAttribute('data-sens') === '1' && ligne.nextElementSibling) {
+                liste.insertBefore(ligne.nextElementSibling, ligne);
+            }
+            renumeroter();
+            bouton.focus();
+        });
+    })();
+</script>
+</body>
+</html>

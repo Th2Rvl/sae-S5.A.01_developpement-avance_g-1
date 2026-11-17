@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${'Colis ' + colis.reference})}"></head>
+<body>
+<!-- Maquette 03 · Détail d'un colis -->
+<div class="ecran">
+    <header th:replace="~{fragments/layout :: barre-retour(${'Colis ' + colis.reference}, '/chauffeur')}"></header>
+    <main class="contenu contenu-detail">
+        <section class="carte">
+            <div class="entete-colis">
+                <span>Commande <span class="mono" th:text="${colis.commande.reference}">CMD-0187</span></span>
+                <span class="chip" th:classappend="${colis.statut.name()}" th:text="${colis.statut.libelle}">À livrer</span>
+            </div>
+            <div class="chiffres">
+                <div><strong th:text="${#numbers.formatDecimal(colis.poidsKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">62 kg</strong><span>Poids total</span></div>
+                <div><strong th:text="${colis.pieces.size()}">3</strong><span>Pièces</span></div>
+                <div><strong th:text="${arret != null ? 'n° ' + arret.ordre : '—'}">n° 2</strong><span>Arrêt</span></div>
+            </div>
+            <span class="secondaire petit" th:text="'Dimensions : ' + ${colis.dimensions}">Dimensions : 120 × 80 × 40 cm</span>
+        </section>
+
+        <section class="carte" th:with="client=${colis.client}">
+            <span class="etiquette">Client</span>
+            <div class="client-nom" th:text="${client.nom}">Métallerie Causse</div>
+            <div class="coordonnee">
+                <th:block th:replace="~{fragments/layout :: lieu}"></th:block>
+                <span><span th:text="${client.adresse}">12 rue des Forges</span><br>
+                    <span th:text="|${client.codePostal} ${client.ville}|">12850 Onet-le-Château</span></span>
+            </div>
+            <div class="coordonnee" th:if="${client.telephone != null and !#strings.isEmpty(client.telephone)}">
+                <th:block th:replace="~{fragments/layout :: telephone}"></th:block>
+                <span th:text="${client.telephone}">05 65 XX XX XX</span>
+            </div>
+        </section>
+
+        <section class="carte carte-pieces">
+            <span class="etiquette" th:text="|Pièces emballées (${colis.pieces.size()})|">Pièces emballées (3)</span>
+            <div class="piece" th:each="p : ${colis.pieces}">
+                <span><span th:text="${p.designation}">Platine acier 600 × 400</span>
+                    <small class="mono" th:text="${p.reference}">P-2031</small></span>
+                <span class="nowrap" th:text="${#numbers.formatDecimal(p.poidsKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">28 kg</span>
+            </div>
+        </section>
+    </main>
+    <div class="bas">
+        <a class="bouton pleine-largeur" th:href="@{/chauffeur/carte(client=${colis.client.id})}">
+            <th:block th:replace="~{fragments/layout :: lieu}"></th:block>
+            Voir sur la carte
+        </a>
+    </div>
+</div>
+</body>
+</html>

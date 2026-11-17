@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Carte')}"></head>
+<body>
+<!-- Maquette 04 · Tournée — onglet Carte (OSM) -->
+<div class="ecran ecran-carte">
+    <header th:replace="~{fragments/layout :: barre-tournee('carte')}"></header>
+    <main class="contenu">
+        <div id="carte"></div>
+        <div class="encart-carte">
+            <th:block th:if="${tournee.boucleCalculee}">
+                <strong>Boucle calculée</strong>
+                <span class="secondaire petit"
+                      th:text="|${tournee.arrets.size()} arrêts · ${#numbers.formatDecimal(tournee.distanceTotaleKm, 1, 'WHITESPACE', 1, 'COMMA')} km · départ et retour à l'atelier|">7 arrêts · 72,1 km · départ et retour à l'atelier</span>
+                <a class="bouton" th:href="@{/chauffeur/boucle}">Voir l'ordre de passage</a>
+            </th:block>
+            <th:block th:unless="${tournee.boucleCalculee}">
+                <strong>Boucle à calculer</strong>
+                <span class="secondaire petit" th:text="|${tournee.clients.size()} clients à livrer|">7 clients à livrer</span>
+                <a class="bouton" th:href="@{/chauffeur/boucle}">Calculer la boucle</a>
+            </th:block>
+        </div>
+    </main>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="javascript">window.donneesCarte = /*[[${carte}]]*/ null;</script>
+<script th:src="@{/js/carte-tournee.js}"></script>
+</body>
+</html>

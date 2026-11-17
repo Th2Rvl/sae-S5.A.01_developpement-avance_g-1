@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Boucle')}"></head>
+<body>
+<!-- Maquette 05 · Tournée — onglet Boucle -->
+<div class="ecran" th:with="prevue=${tournee.statut.name() == 'PREVUE'}">
+    <header th:replace="~{fragments/layout :: barre-tournee('boucle')}"></header>
+    <main class="contenu contenu-boucle">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <div class="alerte erreur" th:unless="${conflits.isEmpty()}" role="alert">
+            Masses incompatibles, prévenez l'atelier :
+            <span th:each="c, it : ${conflits}" th:text="${c} + (${it.last} ? '.' : ' ; ')">A et B</span>
+        </div>
+
+        <section class="carte">
+            <div class="boucle-titre">
+                <strong th:text="${tournee.boucleCalculee} ? 'Boucle calculée' : 'Boucle à calculer'">Boucle calculée</strong>
+                <span th:if="${tournee.boucleCalculee}" th:text="${tournee.algorithme.libelle}">Approchée — algorithme maison</span>
+                <span th:unless="${tournee.boucleCalculee}">Choisissez un algorithme pour obtenir l'ordre de passage.</span>
+                <span th:unless="${prevue}" class="chip" th:classappend="${tournee.statut.name()}" th:text="${tournee.statut.libelle}">Validée</span>
+            </div>
+            <div class="chiffres">
+                <div><strong th:text="${tournee.boucleCalculee} ? ${#numbers.formatDecimal(tournee.distanceTotaleKm, 1, 'WHITESPACE', 1, 'COMMA')} : '—'">72,1</strong><span>km</span></div>
+                <div><strong th:text="${tournee.clients.size()}">7</strong><span>arrêts</span></div>
+                <div><strong th:text="${tournee.colis.size()}">12</strong><span>colis</span></div>
+            </div>
+            <div class="boucle-boutons" th:if="${prevue}">
+                <button type="button" onclick="document.getElementById('calcul').showModal()"
+                        th:disabled="${!conflits.isEmpty()}"
+                        th:text="${tournee.boucleCalculee} ? 'Recalculer' : 'Calculer'">Recalculer</button>
+                <a class="bouton" th:href="@{/chauffeur/ordre}">Ordre manuel</a>
+            </div>
+        </section>
+
+        <section class="carte arrets" th:if="${tournee.boucleCalculee}">
+            <div class="arret">
+                <span class="numero depot" th:insert="~{fragments/layout :: camion}"></span>
+                <span class="secondaire" th:text="'Départ — ' + ${tournee.atelier.nom}">Départ — Atelier T.G.V</span>
+                <span></span>
+            </div>
+            <div class="arret" th:each="a : ${tournee.arrets}" th:with="colisClient=${tournee.colisDuClient(a.client)}">
+                <span class="numero" th:text="${a.ordre}">1</span>
+                <span>
+                    <strong th:text="${a.client.nom}">Garage Fabre PL</strong>
+                    <span class="secondaire"
+                          th:text="|${a.client.ville} · ${colisClient.size()} colis · ${#numbers.formatDecimal(#aggregates.sum(colisClient.![poidsKg]), 1, 'WHITESPACE', 0, 'COMMA')} kg|">Sébazac · 1 colis · 45 kg</span>
+                </span>
+                <span class="distance"
+                      th:text="${#numbers.formatDecimal(a.distanceDepuisPrecedentKm, 1, 'WHITESPACE', 1, 'COMMA')} + ' km'">8,2 km</span>
+            </div>
+        </section>
+    </main>
+
+    <div class="bas" th:if="${prevue and tournee.boucleCalculee}">
+        <form method="post" th:action="@{/chauffeur/tournees/{id}/validation(id=${tournee.id})}">
+            <button type="submit" class="action pleine-largeur">Valider la boucle</button>
+        </form>
+    </div>
+
+    <!-- Maquette 06 · Dialogue de calcul -->
+    <dialog id="calcul" th:if="${prevue}">
+        <form method="post" th:action="@{/chauffeur/tournees/{id}/calcul(id=${tournee.id})}">
+            <h2>Calculer la boucle</h2>
+            <p th:text="|${tournee.colis.size()} colis chez ${tournee.clients.size()} clients. Le calcul est fait par le serveur ; choisissez l'algorithme.|">
+                12 colis chez 7 clients. Le calcul est fait par le serveur ; choisissez l'algorithme.</p>
+            <label class="algo" th:each="e, it : ${estimations}" th:classappend="${!e.realisable()} ? 'indisponible'">
+                <input type="radio" name="algorithme" th:value="${e.algorithme().name()}"
+                       th:checked="${tournee.algorithme != null and tournee.algorithme.estCalcule()} ? ${tournee.algorithme == e.algorithme()} : ${it.last}"
+                       th:disabled="${!e.realisable()}">
+                <span>
+                    <strong th:text="${e.algorithme().libelle}">Approchée — algorithme maison</strong>
+                    <span th:text="'Difficulté estimée : ' + ${e.difficulte().libelle}">Difficulté estimée : faible</span>
+                </span>
+            </label>
+            <div class="dialogue-boutons">
+                <button type="button" class="texte" onclick="this.closest('dialog').close()">Annuler</button>
+                <button type="submit" class="texte">Calculer</button>
+            </div>
+        </form>
+    </dialog>
+</div>
+</body>
+</html>

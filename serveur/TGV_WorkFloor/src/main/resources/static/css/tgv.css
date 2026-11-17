@@ -1,0 +1,298 @@
+/* ==========================================================================
+   Espace chauffeur T.G.V : reprend les maquettes « 1 · Préparer la tournée »
+   et la charte graphique (bleu pour naviguer et consulter, orange pour les
+   actions de terrain, Roboto, chips de statut).
+   ========================================================================== */
+:root {
+    --tgv-bleu: #1E3A5F;
+    --tgv-bleu-fonce: #152A45;
+    --tgv-orange: #B85209;
+    --tgv-orange-vif: #F28C28;
+    --sur-bleu-inactif: #B8C4D4;
+    --fond: #F2F4F7;
+    --surface: #FFFFFF;
+    --texte: #1A1F24;
+    --texte-secondaire: #56606B;
+    --contour: #79828D;
+    --separateur: #DCE1E8;
+    --bleu-statut: #1E5AA8;
+    --bleu-statut-fond: #E3EDF9;
+    --orange-statut: #9A4508;
+    --orange-statut-fond: #FCEBDD;
+    --vert-statut: #186E3F;
+    --vert-statut-fond: #E1F2E7;
+    --rouge-statut: #B3261E;
+    --rouge-statut-fond: #F8E4E2;
+    --gris-statut-fond: #E8EBEF;
+    --rayon-carte: 12px;
+    --ombre: 0 1px 2px rgba(21, 42, 69, .12), 0 1px 3px rgba(21, 42, 69, .08);
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 15px; }
+
+body {
+    margin: 0;
+    background: var(--fond);
+    color: var(--texte);
+    font-family: Roboto, "Segoe UI", system-ui, -apple-system, sans-serif;
+    line-height: 1.4;
+}
+
+a { color: var(--tgv-bleu); }
+
+.mono { font-family: "Roboto Mono", ui-monospace, Consolas, monospace; font-weight: 500; }
+.secondaire { color: var(--texte-secondaire); }
+.petit { font-size: .82rem; }
+.nowrap { white-space: nowrap; }
+
+/* Les maquettes sont des écrans de téléphone : sur un écran plus large, la barre bleue occupe toute la largeur
+   et le contenu reste centré dans une colonne de largeur --largeur (élargie sur ordinateur, voir en bas). */
+.ecran {
+    --largeur: 640px;
+    min-height: 100vh; display: flex; flex-direction: column; background: var(--fond);
+}
+.contenu {
+    flex: 1; width: 100%; max-width: var(--largeur); margin: 0 auto;
+    padding: 12px 12px 24px; display: flex; flex-direction: column; gap: 10px;
+}
+/* marge latérale qui aligne l'intérieur de la barre bleue sur la colonne de contenu */
+.barre, .bas { --marge: max(12px, calc((100% - var(--largeur)) / 2 + 12px)); }
+
+/* ---------------------------------------------------------------- barre d'application */
+.barre {
+    background: var(--tgv-bleu); color: #fff; position: sticky; top: 0; z-index: 1000;
+}
+.barre-haut { display: flex; align-items: center; gap: 12px; padding: 10px var(--marge); min-height: 56px; }
+.barre-titre { flex: 1; min-width: 0; }
+.barre-titre strong { display: block; font-size: 1.25rem; font-weight: 400; }
+.barre-titre small { display: block; color: var(--sur-bleu-inactif); font-size: .78rem; }
+.barre a.retour { color: #fff; text-decoration: none; display: grid; place-items: center; width: 32px; height: 32px; }
+.barre a.retour svg { width: 22px; height: 22px; fill: #fff; }
+.barre form { margin: 0; }
+.barre button { color: #fff; border-color: rgba(255, 255, 255, .5); }
+.barre button:hover { background: rgba(255, 255, 255, .1); }
+
+.onglets { display: flex; padding: 0 calc(var(--marge) - 12px); }
+.onglets a {
+    flex: 1; text-align: center; color: var(--sur-bleu-inactif); text-decoration: none;
+    font-weight: 500; font-size: .9rem; padding: 10px 4px 9px; border-bottom: 3px solid transparent;
+}
+.onglets a:hover { color: #fff; }
+.onglets a.actif { color: #fff; border-bottom-color: var(--tgv-orange-vif); }
+
+/* ---------------------------------------------------------------- cartes */
+.carte {
+    background: var(--surface); border-radius: var(--rayon-carte); box-shadow: var(--ombre); padding: 14px;
+}
+.etiquette {
+    display: block; font-size: .72rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--texte-secondaire); margin-bottom: 6px;
+}
+
+/* ---------------------------------------------------------------- chips de statut */
+.chip {
+    display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: .75rem; font-weight: 500;
+    background: var(--gris-statut-fond); color: var(--texte-secondaire); white-space: nowrap;
+}
+.chip.A_LIVRER, .chip.VALIDEE { background: var(--bleu-statut-fond); color: var(--bleu-statut); }
+.chip.EN_COURS { background: var(--orange-statut-fond); color: var(--orange-statut); }
+.chip.LIVRE { background: var(--vert-statut-fond); color: var(--vert-statut); }
+.chip.REFUSE { background: var(--rouge-statut-fond); color: var(--rouge-statut); }
+
+/* ---------------------------------------------------------------- boutons */
+.bouton, button {
+    font: inherit; font-weight: 500; font-size: .9rem;
+    border-radius: 999px; padding: 0 20px; min-height: 40px;
+    border: 1px solid var(--contour); background: transparent; color: var(--tgv-bleu);
+    cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.bouton:hover, button:hover { background: rgba(30, 58, 95, .06); }
+.bouton svg, button svg { width: 18px; height: 18px; fill: currentColor; }
+.principal { background: var(--tgv-bleu); border-color: var(--tgv-bleu); color: #fff; }
+.principal:hover { background: var(--tgv-bleu-fonce); }
+.action { background: var(--tgv-orange); border-color: var(--tgv-orange); color: #fff; }
+.action:hover { background: #9A4508; }
+.texte { border: none; padding: 0 12px; }
+.petit-bouton { min-height: 32px; padding: 0 12px; font-size: .82rem; }
+.pleine-largeur { width: 100%; min-height: 48px; }
+button:disabled { opacity: .35; cursor: default; }
+.icone {
+    width: 36px; height: 36px; min-height: 36px; padding: 0; border: none; border-radius: 50%; color: var(--tgv-bleu);
+}
+.icone svg { width: 22px; height: 22px; }
+
+/* Bouton principal collé en bas de l'écran, comme sur les maquettes. */
+.bas { position: sticky; bottom: 0; padding: 12px var(--marge); background: var(--fond); }
+
+/* ---------------------------------------------------------------- alertes */
+.alerte { border-radius: 8px; padding: 10px 14px; font-weight: 500; font-size: .9rem; }
+.alerte.succes { background: var(--vert-statut-fond); color: var(--vert-statut); }
+.alerte.erreur { background: var(--rouge-statut-fond); color: var(--rouge-statut); }
+.alerte.info { background: var(--bleu-statut-fond); color: var(--bleu-statut); font-weight: 400; }
+
+/* ---------------------------------------------------------------- 01 · connexion */
+.bandeau-connexion { background: var(--tgv-bleu); color: #fff; padding: 56px 24px 28px; }
+.logo {
+    width: 48px; height: 48px; border-radius: 10px; background: var(--tgv-orange);
+    display: grid; place-items: center; margin-bottom: 20px;
+}
+.logo svg { width: 28px; height: 28px; fill: #fff; }
+.bandeau-connexion h1 { margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: .1em; }
+.bandeau-connexion p { margin: 4px 0 0; color: var(--sur-bleu-inactif); font-size: .85rem; }
+.corps-connexion { flex: 1; display: flex; flex-direction: column; padding: 24px; background: var(--surface); }
+.corps-connexion h2 { font-size: 1.3rem; font-weight: 400; margin: 0 0 20px; }
+.corps-connexion form { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+.corps-connexion .pousse { flex: 1; }
+
+/* Champ « contour » Material : le libellé est posé sur la bordure. */
+.champ { position: relative; }
+.champ label {
+    position: absolute; top: -8px; left: 10px; padding: 0 4px; background: var(--surface);
+    font-size: .72rem; color: var(--texte-secondaire);
+}
+.champ input {
+    width: 100%; font: inherit; color: var(--texte); background: var(--surface);
+    border: 1px solid var(--contour); border-radius: 4px; padding: 14px 12px 12px; min-height: 52px; font-size: 16px;
+}
+.champ input:focus { outline: 2px solid var(--tgv-bleu); outline-offset: -1px; border-color: var(--tgv-bleu); }
+.case { display: flex; align-items: center; gap: 12px; }
+.case input { width: 18px; height: 18px; margin: 0; accent-color: var(--tgv-bleu); }
+
+/* ---------------------------------------------------------------- 02 · onglet Colis */
+.resume { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .82rem; }
+.resume form { margin: 0; }
+.resume select {
+    font: inherit; font-weight: 500; color: var(--tgv-bleu); border: none; background: transparent;
+    padding: 4px 0; cursor: pointer;
+}
+.liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ligne-colis {
+    display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: start;
+    background: var(--surface); border-radius: var(--rayon-carte); box-shadow: var(--ombre); padding: 12px;
+    color: inherit; text-decoration: none;
+}
+.ligne-colis:hover { background: #F8F9FB; }
+.pastille-colis {
+    width: 36px; height: 36px; border-radius: 8px; background: var(--bleu-statut-fond);
+    display: grid; place-items: center;
+}
+.pastille-colis svg { width: 20px; height: 20px; fill: var(--tgv-bleu); }
+.ligne-colis .mono { font-size: .8rem; }
+.ligne-colis strong { display: block; font-weight: 500; }
+.ligne-colis .secondaire { font-size: .8rem; }
+
+/* ---------------------------------------------------------------- 03 · détail d'un colis */
+.entete-colis { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .85rem; }
+.chiffres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 8px; }
+.chiffres strong { display: block; font-size: 1.6rem; font-weight: 400; }
+.chiffres span { font-size: .75rem; color: var(--texte-secondaire); }
+.client-nom { font-size: 1.05rem; font-weight: 500; margin-bottom: 8px; }
+.coordonnee { display: flex; gap: 10px; align-items: flex-start; font-size: .88rem; margin-top: 6px; }
+.coordonnee svg { width: 18px; height: 18px; fill: var(--texte-secondaire); flex: none; margin-top: 1px; }
+.piece { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--separateur); }
+.piece:first-of-type { border-top: none; }
+.piece small { display: block; color: var(--texte-secondaire); font-size: .72rem; }
+
+/* ---------------------------------------------------------------- 04 · onglet Carte */
+.ecran-carte { height: 100vh; height: 100dvh; min-height: 0; }
+.ecran-carte .contenu { padding: 0; gap: 0; position: relative; min-height: 0; }
+#carte { flex: 1; min-height: 420px; z-index: 0; }
+.encart-carte {
+    position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 500;
+    background: var(--surface); border-radius: var(--rayon-carte); box-shadow: var(--ombre); padding: 12px 14px;
+}
+.encart-carte strong { display: block; font-weight: 500; }
+.encart-carte .bouton { width: 100%; margin-top: 10px; }
+.marqueur-arret {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--tgv-bleu); color: #fff; border: 2px solid #fff;
+    display: grid; place-items: center; font: 500 13px Roboto, sans-serif; box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+}
+.marqueur-depot {
+    width: 28px; height: 28px; border-radius: 6px; background: var(--tgv-orange); border: 2px solid #fff;
+    display: grid; place-items: center; box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+}
+.marqueur-depot svg { width: 16px; height: 16px; fill: #fff; }
+.leaflet-bar a.localiser { display: grid; place-items: center; }
+.leaflet-bar a.localiser svg { width: 18px; height: 18px; fill: var(--tgv-bleu); }
+
+/* ---------------------------------------------------------------- 05 · onglet Boucle */
+.boucle-titre strong { display: block; font-weight: 500; }
+.boucle-titre span { font-size: .8rem; color: var(--texte-secondaire); }
+.boucle-boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.boucle-boutons > * { width: 100%; }
+.arrets { padding: 4px 14px; }
+.arret { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--separateur); }
+.arret:first-child { border-top: none; }
+.arret strong { display: block; font-weight: 500; }
+.arret .secondaire { font-size: .78rem; }
+.arret .distance { font-size: .8rem; color: var(--texte-secondaire); white-space: nowrap; }
+.numero {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--tgv-bleu); color: #fff;
+    display: grid; place-items: center; font-size: .78rem; font-weight: 500;
+}
+.numero.depot { background: var(--tgv-orange); border-radius: 6px; }
+.numero.depot svg { width: 15px; height: 15px; fill: #fff; }
+
+/* ---------------------------------------------------------------- 06 · dialogue de calcul */
+dialog {
+    border: none; border-radius: 24px; padding: 22px 22px 12px; width: min(340px, calc(100% - 32px));
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .25);
+}
+dialog::backdrop { background: rgba(26, 31, 36, .45); }
+dialog h2 { font-size: 1.3rem; font-weight: 400; margin: 0 0 10px; }
+dialog p { font-size: .85rem; color: var(--texte-secondaire); margin: 0 0 12px; }
+.algo { display: grid; grid-template-columns: 20px 1fr; gap: 12px; align-items: center; padding: 8px 0; cursor: pointer; }
+.algo input { width: 18px; height: 18px; margin: 0; accent-color: var(--tgv-bleu); }
+.algo strong { display: block; font-weight: 400; font-size: .9rem; }
+.algo span { font-size: .75rem; color: var(--texte-secondaire); }
+.algo.indisponible { opacity: .45; cursor: default; }
+.dialogue-boutons { display: flex; justify-content: flex-end; gap: 4px; margin-top: 8px; }
+
+/* ---------------------------------------------------------------- 07 · ordre manuel */
+.ordre { display: grid; grid-template-columns: 28px 1fr auto auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--separateur); }
+.ordre:first-child { border-top: none; }
+.ordre strong { display: block; font-weight: 500; }
+.ordre .secondaire { font-size: .78rem; }
+
+/* ---------------------------------------------------------------- ordinateur
+   Mêmes écrans et mêmes composants que sur téléphone, disposés pour tirer parti de la largeur. */
+@media (min-width: 900px) {
+    .ecran { --largeur: 1200px; }
+    .ecran.etroit { --largeur: 760px; }
+    .contenu { padding: 24px 12px 32px; gap: 16px; }
+    .barre-haut { min-height: 64px; }
+    .barre-titre strong { font-size: 1.4rem; }
+
+    /* onglets alignés à gauche plutôt qu'étirés */
+    .onglets a { flex: none; padding: 12px 28px 11px; }
+
+    /* bouton du bas : aligné à droite de la colonne, largeur naturelle */
+    .bas { display: flex; justify-content: flex-end; }
+    .bas form { display: contents; }
+    .bas .pleine-largeur { width: auto; min-width: 280px; }
+
+    /* 01 · connexion : l'écran devient une carte centrée */
+    .ecran-connexion {
+        min-height: 0; max-width: 440px; margin: 48px auto; border-radius: 16px; overflow: hidden;
+        box-shadow: 0 4px 24px rgba(21, 42, 69, .15);
+    }
+    .ecran-connexion .corps-connexion form { min-height: 360px; }
+
+    /* 02 · colis en grille */
+    .liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+
+    /* 03 · détail : colis et client à gauche, pièces à droite */
+    .contenu-detail { display: grid; grid-template-columns: 1fr 1fr; align-items: start; align-content: start; }
+    .contenu-detail .carte-pieces { grid-column: 2; grid-row: 1 / span 2; }
+
+    /* 04 · carte : encart à gauche plutôt que sur toute la largeur */
+    .ecran-carte .contenu { max-width: none; }
+    .encart-carte { right: auto; width: 380px; left: 24px; bottom: 24px; }
+
+    /* 05 · boucle : résumé à gauche (reste visible), arrêts à droite */
+    .contenu-boucle { display: grid; grid-template-columns: 360px 1fr; align-items: start; align-content: start; }
+    .contenu-boucle > .alerte { grid-column: 1 / -1; }
+    .contenu-boucle > .carte:first-of-type { position: sticky; top: 140px; }
+}

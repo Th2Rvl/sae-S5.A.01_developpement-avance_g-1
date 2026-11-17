@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tournée du jour')}"></head>
+<body>
+<!-- Maquette 02 · Tournée — onglet Colis -->
+<div class="ecran">
+    <header th:replace="~{fragments/layout :: barre-tournee('colis')}"></header>
+    <main class="contenu">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+
+        <section class="carte" th:if="${tournee == null}">
+            <strong>Aucune tournée à effectuer</strong>
+            <p class="secondaire petit">L'atelier n'a encore préparé aucune tournée.</p>
+        </section>
+
+        <th:block th:if="${tournee != null}">
+            <div class="resume">
+                <span class="secondaire"
+                      th:text="|${tournee.colis.size()} colis · ${tournee.clients.size()} clients · ${#numbers.formatDecimal(tournee.poidsTotalKg, 1, 'WHITESPACE', 0, 'COMMA')} kg|">12 colis · 7 clients · 2 053 kg</span>
+                <form method="get" th:action="@{/chauffeur}">
+                    <select name="tri" onchange="this.form.submit()" aria-label="Tri des colis">
+                        <option value="client" th:selected="${tri == 'client'}">Trier par client</option>
+                        <option value="ordre" th:selected="${tri == 'ordre'}" th:if="${tournee.boucleCalculee}">Trier par ordre de passage</option>
+                    </select>
+                </form>
+            </div>
+
+            <ul class="liste">
+                <li th:each="c : ${colis}">
+                    <a class="ligne-colis" th:href="@{/chauffeur/colis/{id}(id=${c.id})}">
+                        <span class="pastille-colis" th:insert="~{fragments/layout :: colis}"></span>
+                        <span>
+                            <span class="mono" th:text="${c.reference}">C-0418</span>
+                            <strong th:text="${c.client.nom}">Garage Fabre PL</strong>
+                            <span class="secondaire"
+                                  th:text="|${c.client.ville} · ${c.pieces.size()} ${c.pieces.size() > 1 ? 'pièces' : 'pièce'} · ${#numbers.formatDecimal(c.poidsKg, 1, 'WHITESPACE', 0, 'COMMA')} kg|">Sébazac-Concourès · 4 pièces · 45 kg</span>
+                        </span>
+                        <span class="chip" th:classappend="${c.statut.name()}" th:text="${c.statut.libelle}">À livrer</span>
+                    </a>
+                </li>
+            </ul>
+        </th:block>
+    </main>
+</div>
+</body>
+</html>
