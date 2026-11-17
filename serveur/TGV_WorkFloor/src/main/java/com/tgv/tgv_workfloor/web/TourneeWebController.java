@@ -2,9 +2,9 @@ package com.tgv.tgv_workfloor.web;
 
 import com.tgv.tgv_workfloor.exception.RegleMetierException;
 import com.tgv.tgv_workfloor.modele.Algorithme;
-import com.tgv.tgv_workfloor.modele.Arret;
 import com.tgv.tgv_workfloor.modele.StatutTournee;
 import com.tgv.tgv_workfloor.modele.Tournee;
+import com.tgv.tgv_workfloor.service.PlanificationLivraisons;
 import com.tgv.tgv_workfloor.service.TourneeService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -16,13 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /** Consultation des boucles de livraison (trajet, kilomètres) et préparation des tournées. */
 @Controller
@@ -37,10 +32,11 @@ public class TourneeWebController {
 
     @GetMapping
     public String liste(Model model) {
-        LocalDate prochainJeudi = LocalDate.now().with(TemporalAdjusters.nextOrSame(DayOfWeek.THURSDAY));
+        LocalDate prochaineTournee = PlanificationLivraisons.lendemainOuvre(LocalDate.now());
         model.addAttribute("tournees", tournees.lister());
-        model.addAttribute("datePreparation", prochainJeudi);
-        model.addAttribute("nbColisDisponibles", tournees.colisDisponibles(prochainJeudi).size());
+        model.addAttribute("datePreparation", prochaineTournee);
+        model.addAttribute("nbColisDisponibles", tournees.colisDisponibles(prochaineTournee).size());
+        model.addAttribute("colisEnAttente", tournees.colisEnAttente());
         model.addAttribute("kmTotal", tournees.lister().stream()
                 .filter(t -> t.getStatut() == StatutTournee.TERMINEE).mapToDouble(Tournee::getDistanceTotaleKm).sum());
         return "atelier/tournees/liste";
@@ -67,8 +63,8 @@ public class TourneeWebController {
         model.addAttribute("estimations", tournee.getColis().isEmpty() ? List.of() : tournees.estimer(id));
         model.addAttribute("nbOrdresPossibles", tournee.getColis().isEmpty() ? 0 : tournees.nombreOrdresPossibles(id));
         model.addAttribute("conflits", tournee.getColis().isEmpty() ? List.of() : tournees.conflitsDeMasses(id));
-        model.addAttribute("carte", donneesCarte(tournee));
-        model.addAttribute("chargementHautEnBas", inverse(tournee));
+        model.addAttribute("carte", CarteTournee.donnees(tournee));
+        model.addAttribute("chargementHautEnBas", CarteTournee.chargementHautEnBas(tournee));
         return "atelier/tournees/detail";
     }
 
@@ -118,45 +114,5 @@ public class TourneeWebController {
             redirection.addFlashAttribute("erreur", e.getMessage());
             return "redirect:/atelier/tournees/" + id;
         }
-    }
-
-    /** Points affichés par Leaflet : dépôt, puis clients (numérotés si la boucle est calculée). */
-    private static Map<String, Object> donneesCarte(Tournee t) {
-        Map<String, Object> carte = new LinkedHashMap<>();
-        carte.put("depot", Map.of("nom", t.getAtelier().getNom(), "lat", t.getAtelier().getLatitude(),
-                "lon", t.getAtelier().getLongitude()));
-        List<Map<String, Object>> points = new ArrayList<>();
-        if (t.isBoucleCalculee()) {
-            for (Arret a : t.getArrets()) {
-                points.add(point(a.getOrdre(), a.getClient().getNom(), a.getClient().getVille(),
-                        a.getClient().getLatitude(), a.getClient().getLongitude(), t.bonDuClient(a.getClient()).isPresent()));
-            }
-        } else {
-            t.getClients().forEach(c -> points.add(point(0, c.getNom(), c.getVille(), c.getLatitude(),
-                    c.getLongitude(), false)));
-        }
-        carte.put("arrets", points);
-        carte.put("boucle", t.isBoucleCalculee());
-        return carte;
-    }
-
-    private static Map<String, Object> point(int ordre, String nom, String ville, double lat, double lon,
-                                             boolean livre) {
-        Map<String, Object> p = new LinkedHashMap<>();
-        p.put("ordre", ordre);
-        p.put("nom", nom);
-        p.put("ville", ville);
-        p.put("lat", lat);
-        p.put("lon", lon);
-        p.put("livre", livre);
-        return p;
-    }
-
-    private static List<Object[]> inverse(Tournee t) {
-        List<Object[]> lignes = new ArrayList<>();
-        for (int i = t.getChargement().size() - 1; i >= 0; i--) {
-            lignes.add(new Object[]{i + 1, t.getChargement().get(i)});
-        }
-        return lignes;
     }
 }

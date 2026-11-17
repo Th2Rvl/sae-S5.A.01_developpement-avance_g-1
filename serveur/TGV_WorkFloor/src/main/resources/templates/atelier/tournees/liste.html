@@ -13,6 +13,12 @@
         </div>
     </div>
 
+    <div class="alerte info">
+        <strong>Règle de livraison.</strong> Un colis emballé dans la journée part dans la tournée du lendemain
+        (jour ouvré : emballé le vendredi, livré le lundi) ; il y est placé automatiquement. Un colis qui n'a pas pu
+        être livré est reporté au <strong>jeudi</strong> suivant, où tous les reports sont regroupés.
+    </div>
+
     <section class="carte">
         <h2>Préparer une tournée</h2>
         <form class="actions" method="post" th:action="@{/atelier/tournees/preparation}">
@@ -22,10 +28,29 @@
             </div>
             <button type="submit" class="principal" style="align-self:flex-end">Préparer</button>
             <p class="secondaire petit" style="align-self:flex-end;margin:0 0 10px">
-                <span th:text="${nbColisDisponibles}">0</span> colis à livrer d'ici le
-                <span th:text="${#temporals.format(datePreparation, 'EEEE d MMMM')}">jeudi</span> ne sont dans aucune tournée.
+                <span th:text="${nbColisDisponibles}">0</span> colis en attente peuvent partir le
+                <span th:text="${#temporals.format(datePreparation, 'EEEE d MMMM')}">jeudi</span>.
                 Ils seront ajoutés (l'ensemble des colis est figé quand le chauffeur valide la boucle).</p>
         </form>
+    </section>
+
+    <section class="carte" th:unless="${colisEnAttente.isEmpty()}">
+        <h2>Colis en attente de tournée</h2>
+        <p class="secondaire petit">Leur tournée était déjà validée ou a été supprimée : préparez une tournée pour
+            les embarquer.</p>
+        <div class="tableau-conteneur">
+            <table>
+                <thead><tr><th>Colis</th><th>Client</th><th class="droite">Poids</th><th>Livraison</th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${colisEnAttente}">
+                    <td class="mono" th:text="${c.reference}">C-0425</td>
+                    <td th:text="${c.client.nom}">Client</td>
+                    <td class="droite nowrap" th:text="${#numbers.formatDecimal(c.poidsKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">75 kg</td>
+                    <td th:replace="~{fragments/layout :: livraison(${c})}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <section class="carte">

@@ -64,17 +64,29 @@ public class TourneeService {
                 .orElseThrow(() -> new RessourceIntrouvableException("Tournée à effectuer", "aucune"));
     }
 
-    /** Colis prêts (à livrer, pas encore affectés) dont la date prévue est au plus tard ce jour-là. */
+    /**
+     * Colis prêts (à livrer, pas encore affectés) qui peuvent partir dans la tournée de ce jour-là selon la règle
+     * de planification : colis neufs dès le lendemain ouvré de leur emballage, colis reportés le jeudi.
+     */
     public List<Colis> colisDisponibles(LocalDate date) {
+        return colisEnAttente().stream()
+                .filter(c -> PlanificationLivraisons.peutPartirLe(c, date))
+                .toList();
+    }
+
+    /** Colis à livrer qui ne sont dans aucune tournée, du plus urgent au moins urgent. */
+    public List<Colis> colisEnAttente() {
         return colis.findByStatut(StatutColis.A_LIVRER).stream()
                 .filter(c -> c.getTournee() == null)
-                .filter(c -> !c.getCommande().getDatePrevue().isAfter(date))
-                .sorted(Comparator.comparing(Colis::getReference))
+                .sorted(Comparator.comparing(PlanificationLivraisons::dateDue).thenComparing(Colis::getReference))
                 .toList();
     }
 
     /** Crée la tournée du jour (ou la complète si elle est encore prévue) avec les colis disponibles. */
     public synchronized Tournee preparer(LocalDate date) {
+        if (!PlanificationLivraisons.estOuvre(date)) {
+            throw new RegleMetierException("Pas de tournée le week-end : choisissez un jour du lundi au vendredi.");
+        }
         Tournee tournee = tournees.findByDate(date).orElse(null);
         if (tournee != null && tournee.getStatut().estFigee()) {
             throw new RegleMetierException("La tournée du " + date + " est déjà "
@@ -82,7 +94,7 @@ public class TourneeService {
         }
         List<Colis> disponibles = colisDisponibles(date);
         if (tournee == null && disponibles.isEmpty()) {
-            throw new RegleMetierException("Aucun colis à livrer au plus tard le " + date + ".");
+            throw new RegleMetierException("Aucun colis ne doit partir le " + date + ".");
         }
         if (tournee == null) {
             tournee = tournees.save(new Tournee(date, atelierPrincipal()));
@@ -95,6 +107,45 @@ public class TourneeService {
             tournee.effacerBoucle();
         }
         return tournee;
+    }
+
+    /**
+     * Place automatiquement un colis à livrer dans la tournée de sa date de livraison (créée si besoin). Si cette
+     * tournée est déjà validée ou partie, le colis prend la suivante possible (lendemain ouvré, ou jeudi suivant
+     * pour un colis reporté).
+     */
+    public synchronized Tournee planifier(Colis c) {
+        if (c.getStatut() != StatutColis.A_LIVRER || c.getTournee() != null) {
+            return c.getTournee();
+        }
+        LocalDate date = PlanificationLivraisons.premiereDate(c, LocalDate.now());
+        Tournee tournee = tournees.findByDate(date).orElse(null);
+        while (tournee != null && tournee.getStatut().estFigee()) {
+            date = PlanificationLivraisons.dateSuivante(c, date);
+            tournee = tournees.findByDate(date).orElse(null);
+        }
+        if (tournee == null) {
+            tournee = tournees.save(new Tournee(date, atelierPrincipal()));
+        }
+        c.setDateLivraisonPrevue(date);
+        c.setTournee(tournee);
+        tournee.getColis().add(c);
+        tournee.effacerBoucle();
+        return tournee;
+    }
+
+    /** Sort un colis de sa tournée prévue (colis défait) ; une tournée prévue devenue vide est supprimée. */
+    public synchronized void retirerDuPlanning(Colis c) {
+        Tournee tournee = c.getTournee();
+        if (tournee == null) {
+            return;
+        }
+        tournee.getColis().remove(c);
+        c.setTournee(null);
+        tournee.effacerBoucle();
+        if (tournee.getColis().isEmpty() && tournee.getStatut() == StatutTournee.PREVUE) {
+            tournees.delete(tournee);
+        }
     }
 
     public synchronized Tournee retirerColis(Long tourneeId, Long colisId) {
@@ -217,21 +268,31 @@ public class TourneeService {
         return bon;
     }
 
-    /** Clôt la tournée ; les colis sans bon redeviennent disponibles pour une prochaine tournée. */
+    /**
+     * Clôt la tournée. Les colis sans bon n'ont pas été livrés : ils sont reportés au jeudi suivant et placés
+     * dans la tournée de ce jeudi.
+     */
     public synchronized Tournee terminer(Long id) {
         Tournee tournee = trouver(id);
         if (tournee.getStatut() != StatutTournee.VALIDEE && tournee.getStatut() != StatutTournee.EN_COURS) {
             throw new RegleMetierException("Seule une tournée validée ou en cours peut être terminée.");
         }
+        tournee.setStatut(StatutTournee.TERMINEE);
+        LocalDate aujourdhui = LocalDate.now();
+        LocalDate manquee = tournee.getDate().isAfter(aujourdhui) ? tournee.getDate() : aujourdhui;
         for (Colis c : List.copyOf(tournee.getColis())) {
             if (c.getBon() == null) {
+                // le colis reste dans l'historique de cette tournée mais part dans celle du jeudi suivant
                 c.setStatut(StatutColis.A_LIVRER);
                 c.setTournee(null);
+                c.setReporte(true);
+                c.setDateLivraisonPrevue(PlanificationLivraisons.livraisonColisReporte(manquee));
+                planifier(c);
             }
         }
-        tournee.setStatut(StatutTournee.TERMINEE);
         return tournee;
     }
+
 
     public List<BonLivraison> listerBons() {
         return bons.findAllByOrderByDateHeureDesc();

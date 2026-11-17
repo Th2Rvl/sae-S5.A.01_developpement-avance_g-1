@@ -111,8 +111,9 @@ h3 { font-size: .95rem; font-weight: 500; margin: 0 0 8px; }
 .etiquette { font-size: .75rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--texte-secondaire); }
 
 .grille { display: grid; gap: 16px; }
-.grille-2 { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
-.grille-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grille-2 { grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); }
+.grille-3 { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+.grille > * { min-width: 0; }
 
 .chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; }
 .chiffre { background: var(--surface); border-radius: var(--rayon-carte); box-shadow: var(--ombre); padding: 16px; }
@@ -141,6 +142,7 @@ td .actions { justify-content: flex-end; flex-wrap: nowrap; }
 .chip.LIVRE, .chip.LIVREE, .chip.TERMINEE, .chip.CONFORME, .chip.FAIBLE { background: var(--vert-statut-fond); color: var(--vert-statut); }
 .chip.REFUSE, .chip.HORS_DE_PORTEE, .chip.ELEVEE, .chip.IMPOSSIBLE { background: var(--rouge-statut-fond); color: var(--rouge-statut); }
 .chip.groupe { background: var(--orange-statut-fond); color: var(--orange-statut); }
+.chip.REPORTE { background: var(--rouge-statut-fond); color: var(--rouge-statut); margin-left: 4px; }
 .chip.MOYENNE { background: var(--orange-statut-fond); color: var(--orange-statut); }
 
 /* ---------------------------------------------------------------- boutons */
@@ -230,9 +232,75 @@ select.compact { min-height: 34px; padding: 4px 8px; font-size: .85rem; }
 .corps-connexion h2 { font-size: 1.3rem; font-weight: 400; margin-bottom: 20px; }
 .corps-connexion button { width: 100%; min-height: 48px; margin-top: 8px; }
 
+/* ---------------------------------------------------------------- espace chauffeur (téléphone d'abord) */
+.page-chauffeur { max-width: 720px; }
+.page-chauffeur .titre-page { align-items: center; }
+.page-chauffeur .titre-page .etiquette { margin: 0; }
+.chiffres-compacts { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.chiffres-compacts .chiffre { padding: 10px 12px; }
+.chiffres-compacts .chiffre strong { font-size: 1.3rem; }
+.pleine-largeur { width: 100%; min-height: 48px; margin-top: 8px; }
+.arrets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.arret { border: 1px solid var(--separateur); border-radius: 10px; padding: 12px; }
+.arret.fait { background: #F7FBF8; border-color: #BFDCC8; }
+.arret-entete { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; }
+.arret-client { display: flex; flex-direction: column; min-width: 0; }
+.arret-ordre { display: flex; flex-direction: column; gap: 4px; }
+.arret-ordre form { margin: 0; }
+.arret-liens { margin: 10px 0 4px; }
+button.icone { width: 40px; padding: 0; font-size: 1.1rem; }
+button:disabled, .bouton:disabled { opacity: .4; cursor: default; }
+.liste-colis { list-style: none; margin: 8px 0 0; padding: 0; }
+.liste-colis li {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 6px 0; border-top: 1px solid var(--separateur);
+}
+.liste-colis li .droite { margin-left: auto; }
+details.bon { margin-top: 10px; }
+details.bon > summary { list-style: none; }
+details.bon > summary::-webkit-details-marker { display: none; }
+details.bon[open] > summary { display: none; }
+details.bon form { margin-top: 8px; }
+fieldset { border: 1px solid var(--separateur); border-radius: 8px; margin: 0; padding: 4px 12px 8px; }
+legend { font-size: .8rem; color: var(--texte-secondaire); font-weight: 500; padding: 0 4px; }
+details > summary { cursor: pointer; }
+h2.en-ligne { display: inline; margin: 0; }
+
+/* ---------------------------------------------------------------- téléphone */
 @media (max-width: 720px) {
-    .entete { padding: 8px 16px; gap: 8px; }
-    .entete nav a { padding: 10px 8px; }
-    .grille-2 { grid-template-columns: 1fr; }
-    .carte-leaflet { height: 340px; }
+    html { font-size: 14px; }
+    .entete { padding: 8px 12px 0; gap: 8px; position: sticky; }
+    .marque small { display: none; }
+    .logo { width: 34px; height: 34px; }
+    .entete nav {
+        order: 3; flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; gap: 0;
+        margin: 0 -12px; padding: 0 4px; scrollbar-width: none;
+    }
+    .entete nav::-webkit-scrollbar { display: none; }
+    .entete nav a { padding: 10px 10px 9px; white-space: nowrap; }
+    .deconnexion { margin-left: auto; }
+    .entete-chauffeur { padding-bottom: 8px; }
+    .masque-mobile { display: none; }
+    .page { padding: 16px 12px 40px; }
+    h1 { font-size: 1.35rem; }
+    .titre-page { margin-bottom: 14px; }
+    .titre-page .actions { width: 100%; }
+    .carte { padding: 12px; }
+    .grille-2, .grille-3 { grid-template-columns: 1fr; }
+    .chiffres { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .chiffre { padding: 12px; }
+    .chiffre strong { font-size: 1.3rem; }
+    /* tableaux non enveloppés : défilement horizontal plutôt que débordement de la page */
+    .carte > table { display: block; overflow-x: auto; }
+    th, td { padding: 8px 6px; }
+    input, select, textarea { font-size: 16px; } /* évite le zoom automatique de Safari iOS */
+    .carte-leaflet { height: 300px; }
+    .carte-petite { height: 240px; }
+    .algo { grid-template-columns: auto 1fr; }
+    .algo .chip { grid-column: 2; justify-self: start; }
+    .pile-colis { grid-template-columns: 40px 1fr auto; padding: 6px 8px; }
+}
+
+@media (max-width: 420px) {
+    .chiffres-compacts { grid-template-columns: repeat(2, 1fr); }
 }

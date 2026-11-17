@@ -5,6 +5,7 @@ import com.tgv.tgv_workfloor.depot.CommandeDepot;
 import com.tgv.tgv_workfloor.depot.TourneeDepot;
 import com.tgv.tgv_workfloor.modele.Client;
 import com.tgv.tgv_workfloor.modele.Commande;
+import com.tgv.tgv_workfloor.service.PlanificationLivraisons;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,12 +47,23 @@ class AtelierWebTest {
                 .andExpect(redirectedUrl("/connexion"));
         mvc.perform(get("/connexion")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("Connexion atelier")));
+        mvc.perform(get("/")).andExpect(redirectedUrl("/atelier"));
     }
 
     @Test
     @WithMockUser(roles = "CHAUFFEUR")
     void unChauffeurNAccedePasALAtelier() throws Exception {
         mvc.perform(get("/atelier")).andExpect(status().isForbidden());
+        mvc.perform(get("/")).andExpect(redirectedUrl("/chauffeur"));
+    }
+
+    @Test
+    @WithMockUser(username = "atelier", roles = "ATELIER")
+    void pasDeTourneeLeWeekEnd() throws Exception {
+        java.time.LocalDate samedi = java.time.LocalDate.now().with(java.time.temporal.TemporalAdjusters
+                .next(java.time.DayOfWeek.SATURDAY));
+        mvc.perform(post("/atelier/tournees/preparation").with(csrf()).param("date", samedi.toString()))
+                .andExpect(flash().attribute("erreur", containsString("week-end")));
     }
 
     @Test
@@ -109,12 +121,25 @@ class AtelierWebTest {
                         .param("hauteurCm", "30"))
                 .andExpect(flash().attributeExists("succes"));
         assertThat(commande.getColis()).hasSize(1);
+        // emballé aujourd'hui : placé d'office dans la tournée du lendemain ouvré
+        var colis = commande.getColis().getFirst();
+        java.time.LocalDate lendemain = PlanificationLivraisons.lendemainOuvre(java.time.LocalDate.now());
+        assertThat(colis.getDateDisponibilite()).isEqualTo(java.time.LocalDate.now());
+        assertThat(colis.getDateLivraisonPrevue()).isEqualTo(lendemain);
+        assertThat(colis.getTournee()).isNotNull();
+        assertThat(colis.getTournee().getDate()).isEqualTo(lendemain);
+        long nbTournees = tournees.count();
 
         // un client qui a des commandes ne peut pas être supprimé
         mvc.perform(post("/atelier/clients/" + client.getId() + "/suppression").with(csrf()))
                 .andExpect(flash().attributeExists("erreur"));
         mvc.perform(post("/atelier/commandes/" + commande.getId() + "/suppression").with(csrf()))
                 .andExpect(redirectedUrl("/atelier/commandes"));
+        if (!lendemain.equals(java.time.LocalDate.now().with(java.time.temporal.TemporalAdjusters
+                .nextOrSame(java.time.DayOfWeek.THURSDAY)))) {
+            // la tournée créée pour ce seul colis, devenue vide, disparaît avec lui
+            assertThat(tournees.count()).isEqualTo(nbTournees - 1);
+        }
         mvc.perform(post("/atelier/clients/" + client.getId() + "/suppression").with(csrf()))
                 .andExpect(flash().attributeExists("succes"));
     }

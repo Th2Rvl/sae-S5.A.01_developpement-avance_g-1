@@ -55,12 +55,14 @@ public final class Dto {
     }
 
     public record ColisResume(Long id, String reference, String statut, String statutLibelle, Long clientId,
-                              String clientNom, String ville, int nbPieces, double poidsKg, Integer numeroArret) {
+                              String clientNom, String ville, int nbPieces, double poidsKg, Integer numeroArret,
+                              LocalDate dateLivraisonPrevue, boolean reporte) {
     }
 
     public record ColisDetail(Long id, String reference, String statut, String statutLibelle, String commandeReference,
                               double poidsKg, int nbPieces, Integer numeroArret, int longueurCm, int largeurCm,
-                              int hauteurCm, ClientDto client, List<PieceDto> pieces) {
+                              int hauteurCm, ClientDto client, List<PieceDto> pieces, LocalDate dateDisponibilite,
+                              LocalDate dateLivraisonPrevue, boolean reporte) {
     }
 
     /**

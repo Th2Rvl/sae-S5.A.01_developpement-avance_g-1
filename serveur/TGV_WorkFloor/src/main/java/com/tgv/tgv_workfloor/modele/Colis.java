@@ -1,5 +1,6 @@
 package com.tgv.tgv_workfloor.modele;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,12 @@ public class Colis implements Identifiable {
     private StatutColis statut = StatutColis.A_LIVRER;
     private Tournee tournee;
     private BonLivraison bon;
+    /** Jour où le colis a été emballé, donc prêt à partir. */
+    private LocalDate dateDisponibilite;
+    /** Jour de livraison imposé par la règle de planification (voir PlanificationLivraisons). */
+    private LocalDate dateLivraisonPrevue;
+    /** Vrai si le colis est revenu d'une tournée sans être livré : il part alors le jeudi. */
+    private boolean reporte;
 
     public Colis() {
     }
@@ -115,5 +122,29 @@ public class Colis implements Identifiable {
 
     public void setBon(BonLivraison bon) {
         this.bon = bon;
+    }
+
+    public LocalDate getDateDisponibilite() {
+        return dateDisponibilite;
+    }
+
+    public void setDateDisponibilite(LocalDate dateDisponibilite) {
+        this.dateDisponibilite = dateDisponibilite;
+    }
+
+    public LocalDate getDateLivraisonPrevue() {
+        return dateLivraisonPrevue;
+    }
+
+    public void setDateLivraisonPrevue(LocalDate dateLivraisonPrevue) {
+        this.dateLivraisonPrevue = dateLivraisonPrevue;
+    }
+
+    public boolean isReporte() {
+        return reporte;
+    }
+
+    public void setReporte(boolean reporte) {
+        this.reporte = reporte;
     }
 }

@@ -23,7 +23,7 @@
             <span class="erreur-champ" th:errors="*{clientId}"></span>
         </div>
         <div class="champ" th:classappend="${#fields.hasErrors('datePrevue')} ? 'invalide'">
-            <label for="datePrevue">Date de livraison prévue (les livraisons ont lieu le jeudi)</label>
+            <label for="datePrevue">Date souhaitée par le client (la livraison suit la fabrication : lendemain de l'emballage)</label>
             <input id="datePrevue" type="date" th:field="*{datePrevue}" required>
             <span class="erreur-champ" th:errors="*{datePrevue}"></span>
         </div>
