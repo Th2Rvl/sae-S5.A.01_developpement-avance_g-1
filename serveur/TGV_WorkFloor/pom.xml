@@ -80,6 +80,13 @@
             <artifactId>flyway-mysql</artifactId>   <!-- support MySQL, séparé du cœur depuis Flyway 10 -->
         </dependency>
 
+        <!-- Optimisation : résolution exacte par une bibliothèque maintenue (solveur de contraintes) -->
+        <dependency>
+            <groupId>org.choco-solver</groupId>
+            <artifactId>choco-solver</artifactId>
+            <version>6.0.2</version>
+        </dependency>
+
         <!-- Dev -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

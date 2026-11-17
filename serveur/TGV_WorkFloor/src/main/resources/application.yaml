@@ -1,6 +1,17 @@
 spring:
   application:
     name: TGV_WorkFloor
+  # ---------------------------------------------------------------------------
+  # MODE STATIQUE (temporaire) : pas encore de base de données.
+  # Les données sont chargées en mémoire au démarrage (config/DonneesStatiques)
+  # et perdues à l'arrêt. Pour brancher MySQL : supprimer ce bloc "autoconfigure".
+  # ---------------------------------------------------------------------------
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/tgv_local}
     username: ${DB_USER:tgv_app}
@@ -12,4 +23,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate   # voir le point 4
-    open-in-view: false  
+    open-in-view: false
+  web:
+    locale: fr_FR                      # dates et nombres en français dans l'interface Atelier
+    locale-resolver: fixed
+
+tgv:
+  donnees-statiques: true              # jeu de démonstration chargé au démarrage
+  distances:
+    coefficient-routier: 1.3           # distance vol d'oiseau × 1,3 ≈ distance sur route
+  optimisation:
+    choco:
+      limite-ms: 20000                 # temps maximum laissé à la bibliothèque Choco

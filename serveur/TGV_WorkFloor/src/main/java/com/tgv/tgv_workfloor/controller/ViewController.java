@@ -1,14 +1,19 @@
 package com.tgv.tgv_workfloor.controller;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 class ViewController {
+
+    /** La racine du site mène à l'interface Atelier (ou à la connexion si besoin). */
     @GetMapping("/")
-    public String app(Model model) {
-        return "app";
+    public String racine() {
+        return "redirect:/atelier";
+    }
+
+    @GetMapping("/connexion")
+    public String connexion() {
+        return "connexion";
     }
 }
