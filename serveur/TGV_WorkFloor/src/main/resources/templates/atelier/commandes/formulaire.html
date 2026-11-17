@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${commande == null} ? 'Nouvelle commande' : 'Modifier la commande')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: entete}"></header>
+<main class="page">
+    <div class="titre-page">
+        <div>
+            <h1 th:text="${commande == null} ? 'Nouvelle commande' : 'Modifier ' + ${commande.reference}">Nouvelle commande</h1>
+            <p>Les pièces se saisissent ensuite sur la page de la commande.</p>
+        </div>
+        <a class="bouton" th:href="${commande == null} ? @{/atelier/commandes} : @{/atelier/commandes/{id}(id=${commande.id})}">Retour</a>
+    </div>
+
+    <form class="carte formulaire" method="post" th:object="${formulaire}" style="max-width:640px"
+          th:action="${commande == null} ? @{/atelier/commandes/nouvelle} : @{/atelier/commandes/{id}/modification(id=${commande.id})}">
+        <div class="champ" th:classappend="${#fields.hasErrors('clientId')} ? 'invalide'">
+            <label for="clientId">Client</label>
+            <select id="clientId" th:field="*{clientId}" required>
+                <option value="">— Choisir un client —</option>
+                <option th:each="c : ${clients}" th:value="${c.id}" th:text="${c.nom + ' · ' + c.ville}">Client</option>
+            </select>
+            <span class="erreur-champ" th:errors="*{clientId}"></span>
+        </div>
+        <div class="champ" th:classappend="${#fields.hasErrors('datePrevue')} ? 'invalide'">
+            <label for="datePrevue">Date de livraison prévue (les livraisons ont lieu le jeudi)</label>
+            <input id="datePrevue" type="date" th:field="*{datePrevue}" required>
+            <span class="erreur-champ" th:errors="*{datePrevue}"></span>
+        </div>
+        <div class="actions">
+            <button type="submit" class="principal">Enregistrer</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

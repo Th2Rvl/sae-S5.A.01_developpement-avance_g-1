@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tournées')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: entete}"></header>
+<main class="page">
+    <div th:replace="~{fragments/layout :: messages}"></div>
+    <div class="titre-page">
+        <div>
+            <h1>Tournées et boucles de livraison</h1>
+            <p><span th:text="${#numbers.formatDecimal(kmTotal, 1, 'WHITESPACE', 1, 'COMMA')}">0</span> km parcourus
+                sur les tournées terminées.</p>
+        </div>
+    </div>
+
+    <section class="carte">
+        <h2>Préparer une tournée</h2>
+        <form class="actions" method="post" th:action="@{/atelier/tournees/preparation}">
+            <div class="champ">
+                <label for="date">Date de la tournée</label>
+                <input id="date" type="date" name="date" th:value="${datePreparation}" required>
+            </div>
+            <button type="submit" class="principal" style="align-self:flex-end">Préparer</button>
+            <p class="secondaire petit" style="align-self:flex-end;margin:0 0 10px">
+                <span th:text="${nbColisDisponibles}">0</span> colis à livrer d'ici le
+                <span th:text="${#temporals.format(datePreparation, 'EEEE d MMMM')}">jeudi</span> ne sont dans aucune tournée.
+                Ils seront ajoutés (l'ensemble des colis est figé quand le chauffeur valide la boucle).</p>
+        </form>
+    </section>
+
+    <section class="carte">
+        <div class="tableau-conteneur">
+            <table>
+                <thead>
+                <tr><th>Date</th><th>Statut</th><th>Colis</th><th>Clients</th><th class="droite">Poids</th>
+                    <th>Boucle</th><th class="droite">Distance</th><th>Chauffeur</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${tournees}">
+                    <td class="nowrap"><a th:href="@{/atelier/tournees/{id}(id=${t.id})}"
+                                          th:text="${#temporals.format(t.date, 'EEEE d MMMM yyyy')}">jeudi 1 octobre 2026</a></td>
+                    <td><span class="chip" th:classappend="${t.statut.name()}" th:text="${t.statut.libelle}">Prévue</span></td>
+                    <td th:text="${t.colis.size()}">12</td>
+                    <td th:text="${t.clients.size()}">7</td>
+                    <td class="droite nowrap" th:text="${#numbers.formatDecimal(t.poidsTotalKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">2 053 kg</td>
+                    <td class="secondaire petit" th:text="${t.algorithme != null} ? ${t.algorithme.libelle} : 'Non calculée'">Approchée</td>
+                    <td class="droite nowrap mono"
+                        th:text="${t.boucleCalculee} ? ${#numbers.formatDecimal(t.distanceTotaleKm, 1, 'WHITESPACE', 1, 'COMMA')} + ' km' : '—'">72,1 km</td>
+                    <td th:text="${t.chauffeur != null} ? ${t.chauffeur.nom} : '—'">Chauffeur 01</td>
+                </tr>
+                <tr th:if="${tournees.isEmpty()}"><td class="vide" colspan="8">Aucune tournée.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

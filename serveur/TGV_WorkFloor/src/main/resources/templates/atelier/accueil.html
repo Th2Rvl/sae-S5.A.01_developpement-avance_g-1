@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tableau de bord')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: entete}"></header>
+<main class="page">
+    <div th:replace="~{fragments/layout :: messages}"></div>
+
+    <div class="titre-page">
+        <div>
+            <h1>Tableau de bord</h1>
+            <p th:text="${#temporals.format(#temporals.createToday(), 'EEEE d MMMM yyyy')}">jeudi 1 octobre 2026</p>
+        </div>
+        <div class="actions">
+            <a class="bouton" th:href="@{/atelier/clients/nouveau}">Nouveau client</a>
+            <a class="bouton principal" th:href="@{/atelier/commandes/nouvelle}">Nouvelle commande</a>
+        </div>
+    </div>
+
+    <div class="chiffres">
+        <a class="chiffre" th:href="@{/atelier/clients}" style="text-decoration:none;color:inherit">
+            <strong th:text="${nbClients}">10</strong><span>clients</span></a>
+        <a class="chiffre" th:href="@{/atelier/commandes}" style="text-decoration:none;color:inherit">
+            <strong th:text="${nbCommandesEnCours}">6</strong><span>commandes à livrer</span></a>
+        <a class="chiffre" th:href="@{/atelier/commandes(etat='EN_FABRICATION')}" style="text-decoration:none;color:inherit">
+            <strong th:text="${nbPiecesAFabriquer}">4</strong><span>pièces à fabriquer</span></a>
+        <div class="chiffre" th:classappend="${nbPiecesAEmballer > 0} ? 'accent'">
+            <strong th:text="${nbPiecesAEmballer}">1</strong><span>pièces fabriquées à emballer</span></div>
+        <a class="chiffre" th:href="@{/atelier/tournees}" style="text-decoration:none;color:inherit">
+            <strong th:text="${nbColisEnAttente}">0</strong><span>colis hors tournée</span></a>
+    </div>
+
+    <div class="grille grille-2">
+        <section class="carte">
+            <h2>Tournée à effectuer</h2>
+            <div th:if="${tournee == null}" class="vide">
+                Aucune tournée en attente.
+                <a th:href="@{/atelier/tournees}">Préparer une tournée</a>
+            </div>
+            <div th:if="${tournee != null}">
+                <p>
+                    <strong th:text="${#temporals.format(tournee.date, 'EEEE d MMMM yyyy')}">jeudi</strong>
+                    <span class="chip" th:classappend="${tournee.statut.name()}"
+                          th:text="${tournee.statut.libelle}">Prévue</span>
+                </p>
+                <div class="chiffres" style="margin-bottom:8px">
+                    <div><strong class="mono" th:text="${tournee.colis.size()}">12</strong> <span class="secondaire">colis</span></div>
+                    <div><strong class="mono" th:text="${tournee.clients.size()}">7</strong> <span class="secondaire">clients</span></div>
+                    <div><strong class="mono" th:text="${#numbers.formatDecimal(tournee.poidsTotalKg, 1, 'WHITESPACE', 0, 'COMMA')}">2 053</strong>
+                        <span class="secondaire">kg</span></div>
+                    <div th:if="${tournee.boucleCalculee}"><strong class="mono"
+                            th:text="${#numbers.formatDecimal(tournee.distanceTotaleKm, 1, 'WHITESPACE', 1, 'COMMA')}">72,1</strong>
+                        <span class="secondaire">km</span></div>
+                </div>
+                <p class="secondaire petit" th:if="${!tournee.boucleCalculee}">Boucle pas encore calculée.</p>
+                <p class="secondaire petit" th:if="${tournee.algorithme != null}"
+                   th:text="${tournee.algorithme.libelle}">Approchée</p>
+                <a class="bouton principal" th:href="@{/atelier/tournees/{id}(id=${tournee.id})}">Voir la tournée</a>
+            </div>
+        </section>
+
+        <section class="carte">
+            <h2>Derniers bons de livraison <a class="petit" th:href="@{/atelier/bons}">Tout voir</a></h2>
+            <table>
+                <tbody>
+                <tr th:each="bon : ${derniersBons}">
+                    <td class="mono" th:text="${bon.numero}">BL-20261001-03</td>
+                    <td th:text="${bon.client.nom}">Client</td>
+                    <td><span class="chip" th:classappend="${bon.etat.name()}" th:text="${bon.etat.libelle}">Conforme</span></td>
+                    <td class="secondaire petit nowrap" th:text="${#temporals.format(bon.dateHeure, 'dd/MM HH:mm')}">01/10 09:20</td>
+                </tr>
+                <tr th:if="${derniersBons.isEmpty()}"><td class="vide" colspan="4">Aucun bon pour l'instant.</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <section class="carte">
+        <h2>Commandes à livrer <a class="petit" th:href="@{/atelier/commandes}">Toutes les commandes</a></h2>
+        <div class="tableau-conteneur">
+            <table>
+                <thead><tr><th>Commande</th><th>Client</th><th>Livraison prévue</th><th>Pièces</th><th class="droite">Poids</th><th>État</th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${commandesEnCours}">
+                    <td class="mono"><a th:href="@{/atelier/commandes/{id}(id=${c.id})}" th:text="${c.reference}">CMD-0187</a></td>
+                    <td th:text="${c.client.nom}">Client</td>
+                    <td th:text="${#temporals.format(c.datePrevue, 'EEE d MMM')}">jeu. 1 oct.</td>
+                    <td th:text="${c.pieces.size()}">3</td>
+                    <td class="droite nowrap" th:text="${#numbers.formatDecimal(c.poidsTotalKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">62 kg</td>
+                    <td><span class="chip" th:classappend="${c.etat.name()}" th:text="${c.etat.libelle}">Fabriquée</span></td>
+                </tr>
+                <tr th:if="${commandesEnCours.isEmpty()}"><td class="vide" colspan="6">Aucune commande en cours.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

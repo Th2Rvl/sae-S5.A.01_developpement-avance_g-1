@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Comptes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: entete}"></header>
+<main class="page">
+    <div th:replace="~{fragments/layout :: messages}"></div>
+    <div class="titre-page">
+        <div>
+            <h1>Comptes</h1>
+            <p>Responsables atelier (interface web) et chauffeurs (application mobile).</p>
+        </div>
+    </div>
+
+    <div class="grille grille-2">
+        <section class="carte">
+            <table>
+                <thead><tr><th>Identifiant</th><th>Nom</th><th>Rôle</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="u : ${utilisateurs}">
+                    <td class="mono" th:text="${u.identifiant}">chauffeur01</td>
+                    <td th:text="${u.nom}">Chauffeur 01</td>
+                    <td><span class="chip" th:text="${u.role.libelle}">Chauffeur</span></td>
+                    <td>
+                        <form class="en-ligne" method="post" th:unless="${u.identifiant == utilisateurConnecte}"
+                              th:action="@{/atelier/utilisateurs/{id}/suppression(id=${u.id})}"
+                              th:data-confirmation="|Supprimer le compte ${u.identifiant} ?|">
+                            <button type="submit" class="petit danger">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="carte">
+            <h2>Nouveau compte</h2>
+            <form class="formulaire" method="post" th:action="@{/atelier/utilisateurs}">
+                <div class="ligne">
+                    <div class="champ"><label for="identifiant">Identifiant</label>
+                        <input id="identifiant" name="identifiant" required autocomplete="off"></div>
+                    <div class="champ"><label for="nom">Nom affiché</label><input id="nom" name="nom"></div>
+                </div>
+                <div class="ligne">
+                    <div class="champ"><label for="motDePasse">Mot de passe (4 caractères min.)</label>
+                        <input id="motDePasse" name="motDePasse" type="password" minlength="4" required autocomplete="new-password"></div>
+                    <div class="champ"><label for="role">Rôle</label>
+                        <select id="role" name="role">
+                            <option th:each="r : ${roles}" th:value="${r.name()}" th:text="${r.libelle}">Chauffeur</option>
+                        </select></div>
+                </div>
+                <div class="actions"><button type="submit" class="principal">Créer le compte</button></div>
+            </form>
+        </section>
+    </div>
+</main>
+</body>
+</html>

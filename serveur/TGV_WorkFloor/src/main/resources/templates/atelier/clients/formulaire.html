@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${clientId == null} ? 'Nouveau client' : 'Modifier le client')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: entete}"></header>
+<main class="page">
+    <div class="titre-page">
+        <div>
+            <h1 th:text="${clientId == null} ? 'Nouveau client' : 'Modifier le client'">Nouveau client</h1>
+            <p>L'adresse de livraison est placée sur la carte pour le calcul des boucles.</p>
+        </div>
+        <a class="bouton" th:href="@{/atelier/clients}">Retour aux clients</a>
+    </div>
+
+    <form class="grille grille-2" method="post" th:object="${formulaire}"
+          th:action="${clientId == null} ? @{/atelier/clients/nouveau} : @{/atelier/clients/{id}(id=${clientId})}">
+        <section class="carte formulaire">
+            <div class="champ" th:classappend="${#fields.hasErrors('nom')} ? 'invalide'">
+                <label for="nom">Nom du client</label>
+                <input id="nom" th:field="*{nom}" required maxlength="100">
+                <span class="erreur-champ" th:errors="*{nom}"></span>
+            </div>
+            <div class="champ" th:classappend="${#fields.hasErrors('adresse')} ? 'invalide'">
+                <label for="adresse">Adresse de livraison</label>
+                <input id="adresse" th:field="*{adresse}" required maxlength="255">
+                <span class="erreur-champ" th:errors="*{adresse}"></span>
+            </div>
+            <div class="ligne">
+                <div class="champ" th:classappend="${#fields.hasErrors('codePostal')} ? 'invalide'">
+                    <label for="codePostal">Code postal</label>
+                    <input id="codePostal" th:field="*{codePostal}" required inputmode="numeric" maxlength="5">
+                    <span class="erreur-champ" th:errors="*{codePostal}"></span>
+                </div>
+                <div class="champ" th:classappend="${#fields.hasErrors('ville')} ? 'invalide'">
+                    <label for="ville">Ville</label>
+                    <input id="ville" th:field="*{ville}" required>
+                    <span class="erreur-champ" th:errors="*{ville}"></span>
+                </div>
+            </div>
+            <div class="champ" th:classappend="${#fields.hasErrors('telephone')} ? 'invalide'">
+                <label for="telephone">Téléphone</label>
+                <input id="telephone" th:field="*{telephone}" type="tel">
+                <span class="erreur-champ" th:errors="*{telephone}"></span>
+            </div>
+            <div class="ligne">
+                <div class="champ" th:classappend="${#fields.hasErrors('latitude')} ? 'invalide'">
+                    <label for="latitude">Latitude</label>
+                    <input id="latitude" th:field="*{latitude}" type="number" step="0.000001">
+                    <span class="erreur-champ" th:errors="*{latitude}"></span>
+                </div>
+                <div class="champ" th:classappend="${#fields.hasErrors('longitude')} ? 'invalide'">
+                    <label for="longitude">Longitude</label>
+                    <input id="longitude" th:field="*{longitude}" type="number" step="0.000001">
+                    <span class="erreur-champ" th:errors="*{longitude}"></span>
+                </div>
+            </div>
+            <div class="actions">
+                <button type="submit" class="principal">Enregistrer</button>
+                <a class="bouton" th:href="@{/atelier/clients}">Annuler</a>
+            </div>
+        </section>
+
+        <section class="carte">
+            <h2>Position sur la carte</h2>
+            <p class="secondaire petit">Cliquez sur la carte pour placer le point de livraison, ou localisez
+                l'adresse saisie (recherche OpenStreetMap).</p>
+            <div class="actions" style="margin-bottom:12px">
+                <button type="button" id="localiser" class="petit">Localiser l'adresse</button>
+                <span id="etat-localisation" class="secondaire petit"></span>
+            </div>
+            <div id="carte" class="carte-petite"></div>
+        </section>
+    </form>
+</main>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    (function () {
+        const champLat = document.getElementById('latitude');
+        const champLon = document.getElementById('longitude');
+        const etat = document.getElementById('etat-localisation');
+        const depart = champLat.value && champLon.value
+            ? [parseFloat(champLat.value), parseFloat(champLon.value)] : [44.35, 2.575];
+        const carte = L.map('carte').setView(depart, champLat.value ? 14 : 10);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© contributeurs OpenStreetMap'
+        }).addTo(carte);
+        let marqueur = champLat.value ? L.marker(depart).addTo(carte) : null;
+
+        function placer(lat, lon, zoom) {
+            champLat.value = lat.toFixed(6);
+            champLon.value = lon.toFixed(6);
+            if (marqueur) { marqueur.setLatLng([lat, lon]); } else { marqueur = L.marker([lat, lon]).addTo(carte); }
+            if (zoom) { carte.setView([lat, lon], zoom); }
+        }
+
+        carte.on('click', e => placer(e.latlng.lat, e.latlng.lng));
+
+        document.getElementById('localiser').addEventListener('click', async () => {
+            const adresse = ['adresse', 'codePostal', 'ville'].map(id => document.getElementById(id).value).join(' ');
+            if (!adresse.trim()) { etat.textContent = 'Saisissez d\'abord l\'adresse.'; return; }
+            etat.textContent = 'Recherche…';
+            try {
+                const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fr&q='
+                    + encodeURIComponent(adresse);
+                const resultats = await (await fetch(url, {headers: {'Accept-Language': 'fr'}})).json();
+                if (resultats.length === 0) { etat.textContent = 'Adresse non trouvée : cliquez sur la carte.'; return; }
+                placer(parseFloat(resultats[0].lat), parseFloat(resultats[0].lon), 15);
+                etat.textContent = 'Adresse localisée.';
+            } catch (e) {
+                etat.textContent = 'Recherche impossible : cliquez sur la carte.';
+            }
+        });
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tournée du ' + ${#temporals.format(tournee.date, 'd MMMM yyyy')})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: entete}"></header>
+<main class="page" th:with="modifiable=${tournee.statut.name() == 'PREVUE' or tournee.statut.name() == 'VALIDEE'}">
+    <div th:replace="~{fragments/layout :: messages}"></div>
+
+    <div class="titre-page">
+        <div>
+            <h1>Tournée du <span th:text="${#temporals.format(tournee.date, 'EEEE d MMMM yyyy')}">jeudi 1 octobre 2026</span>
+                <span class="chip" th:classappend="${tournee.statut.name()}" th:text="${tournee.statut.libelle}">Prévue</span></h1>
+            <p>
+                Départ et retour : <span th:text="${tournee.atelier.nom + ', ' + tournee.atelier.adresse}">Atelier T.G.V</span>
+                <span th:if="${tournee.chauffeur != null}"> · chauffeur <strong th:text="${tournee.chauffeur.nom}">Chauffeur 01</strong></span>
+            </p>
+        </div>
+        <div class="actions">
+            <a class="bouton" th:href="@{/atelier/tournees}">Toutes les tournées</a>
+            <form class="en-ligne" method="post" th:if="${tournee.statut.name() == 'VALIDEE' or tournee.statut.name() == 'EN_COURS'}"
+                  th:action="@{/atelier/tournees/{id}/fin(id=${tournee.id})}"
+                  data-confirmation="Terminer la tournée ? Les colis sans bon redeviendront disponibles.">
+                <button type="submit" class="action">Terminer la tournée</button>
+            </form>
+            <form class="en-ligne" method="post" th:if="${tournee.statut.name() == 'PREVUE'}"
+                  th:action="@{/atelier/tournees/{id}/suppression(id=${tournee.id})}"
+                  data-confirmation="Supprimer cette tournée ? Ses colis redeviendront disponibles.">
+                <button type="submit" class="danger">Supprimer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="chiffres">
+        <div class="chiffre"><strong class="mono"
+                th:text="${tournee.boucleCalculee} ? ${#numbers.formatDecimal(tournee.distanceTotaleKm, 1, 'WHITESPACE', 1, 'COMMA')} : '—'">72,1</strong>
+            <span>km (boucle complète)</span></div>
+        <div class="chiffre"><strong class="mono" th:text="${tournee.clients.size()}">7</strong><span>arrêts</span></div>
+        <div class="chiffre"><strong class="mono" th:text="${tournee.colis.size()}">12</strong><span>colis</span></div>
+        <div class="chiffre"><strong class="mono"
+                th:text="${#numbers.formatDecimal(tournee.poidsTotalKg, 1, 'WHITESPACE', 0, 'COMMA')}">2 053</strong><span>kg chargés</span></div>
+        <div class="chiffre"><strong class="mono" th:text="${tournee.bons.size()} + '/' + ${tournee.arrets.size()}">0/7</strong>
+            <span>bons de livraison</span></div>
+    </div>
+
+    <div class="alerte info" th:if="${tournee.algorithme != null}">
+        <strong th:text="${tournee.algorithme.libelle}">Approchée</strong>
+        <span th:if="${tournee.algorithme.name() != 'MANUEL'}">
+            — calcul en <span th:text="${tournee.dureeCalculMs}">3</span> ms,
+            <span th:text="${tournee.optimaliteProuvee} ? 'boucle optimale prouvée.' : 'boucle non prouvée optimale.'">…</span>
+        </span>
+        <span th:if="${tournee.algorithme.name() == 'MANUEL'}"> — ordre choisi par le chauffeur.</span>
+        L'ordre des masses est toujours respecté : seuls les arrêts marqués « masses identiques » peuvent être permutés.
+    </div>
+
+    <div class="grille grille-2">
+        <section class="carte">
+            <h2>Trajet <span class="secondaire petit">© contributeurs OpenStreetMap</span></h2>
+            <div id="carte" class="carte-leaflet"></div>
+        </section>
+
+        <section class="carte">
+            <h2>Ordre de passage</h2>
+            <p class="vide" th:if="${!tournee.boucleCalculee}">La boucle n'est pas encore calculée.</p>
+            <table th:if="${tournee.boucleCalculee}">
+                <tbody>
+                <tr>
+                    <td><span class="numero depot">D</span></td>
+                    <td colspan="2"><strong>Départ</strong> <span class="secondaire" th:text="${tournee.atelier.nom}">Atelier</span></td>
+                    <td></td>
+                </tr>
+                <tr th:each="a : ${tournee.arrets}" th:with="bon=${tournee.bonDuClient(a.client).orElse(null)}">
+                    <td><span class="numero" th:classappend="${bon != null} ? 'livre'" th:text="${a.ordre}">1</span></td>
+                    <td>
+                        <strong th:text="${a.client.nom}">Garage Fabre PL</strong><br>
+                        <span class="secondaire petit"
+                              th:text="${a.client.ville} + ' · ' + ${tournee.colisDuClient(a.client).size()} + ' colis'">Sébazac · 1 colis</span>
+                    </td>
+                    <td>
+                        <span th:if="${bon != null}" class="chip" th:classappend="${bon.etat.name()}" th:text="${bon.numero}">BL</span>
+                        <span th:if="${bon == null and tournee.tailleGroupe(a.groupe) > 1}" class="chip groupe"
+                              th:text="'Masses identiques · groupe ' + ${a.groupe}">Masses identiques</span>
+                    </td>
+                    <td class="droite nowrap mono"
+                        th:text="${#numbers.formatDecimal(a.distanceDepuisPrecedentKm, 1, 'WHITESPACE', 1, 'COMMA')} + ' km'">8,2 km</td>
+                </tr>
+                <tr>
+                    <td><span class="numero depot">D</span></td>
+                    <td colspan="2"><strong>Retour à l'atelier</strong></td>
+                    <td class="droite nowrap mono"
+                        th:text="${#numbers.formatDecimal(tournee.distanceRetourKm, 1, 'WHITESPACE', 1, 'COMMA')} + ' km'">9 km</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div class="grille grille-2">
+        <section class="carte" th:if="${modifiable}">
+            <h2>Calculer la boucle</h2>
+            <p class="secondaire petit">
+                <span th:text="${tournee.colis.size()}">12</span> colis chez <span th:text="${tournee.clients.size()}">7</span>
+                clients. Les colis sont chargés par masses décroissantes : les clients aux colis plus légers sont
+                livrés d'abord. L'algorithme choisit l'ordre des clients aux colis de masses identiques
+                (<strong th:text="${#numbers.formatDecimal(nbOrdresPossibles, 1, 'WHITESPACE', 0, 'COMMA')}">24</strong>
+                ordre(s) possible(s)) pour raccourcir la boucle.
+                <span th:if="${tournee.statut.name() == 'VALIDEE'}">Recalculer remet la tournée à l'état « prévue ».</span>
+            </p>
+            <div class="alerte erreur" th:unless="${conflits.isEmpty()}">
+                Les masses de ces clients s'entrecroisent : aucun chargement par masses décroissantes n'est possible.
+                <ul><li th:each="c : ${conflits}" th:text="${c}">A et B</li></ul>
+                Revoyez l'emballage de ces commandes.
+            </div>
+            <form method="post" th:action="@{/atelier/tournees/{id}/calcul(id=${tournee.id})}">
+                <label class="algo" th:each="e, it : ${estimations}">
+                    <input type="radio" name="algorithme" th:value="${e.algorithme().name()}" th:checked="${it.last}"
+                           th:disabled="${!e.realisable()}">
+                    <span>
+                        <strong th:text="${e.algorithme().libelle}">Exacte</strong><br>
+                        <span class="secondaire petit" th:text="${e.complexite()}">O(n²·2ⁿ)</span>
+                    </span>
+                    <span class="chip" th:classappend="${e.difficulte().name()}"
+                          th:text="'Difficulté ' + ${e.difficulte().libelle}">faible</span>
+                </label>
+                <div class="actions"><button type="submit" class="principal" th:disabled="${!conflits.isEmpty()}">Calculer</button></div>
+            </form>
+        </section>
+
+        <section class="carte">
+            <h2>Plan de chargement</h2>
+            <p class="vide" th:if="${chargementHautEnBas.isEmpty()}">Disponible une fois la boucle calculée.</p>
+            <div class="pile" th:unless="${chargementHautEnBas.isEmpty()}">
+                <div class="pile-repere">Haut du plateau · déchargé en premier</div>
+                <div class="pile-colis" th:each="l : ${chargementHautEnBas}" th:with="c=${l[1]}">
+                    <span class="position" th:text="'n° ' + ${l[0]}">n° 12</span>
+                    <span><span class="mono" th:text="${c.reference}">C-0418</span> ·
+                        <span th:text="${c.client.nom}">Garage Fabre PL</span>
+                        <span class="secondaire petit"
+                              th:text="'(arrêt ' + ${tournee.arretDuClient(c.client).get().ordre} + ')'">(arrêt 1)</span></span>
+                    <span class="mono nowrap" th:text="${#numbers.formatDecimal(c.poidsKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">45 kg</span>
+                </div>
+                <div class="pile-repere">Bas du plateau · chargé en premier</div>
+            </div>
+        </section>
+    </div>
+
+    <section class="carte">
+        <h2>Colis de la tournée</h2>
+        <div class="tableau-conteneur">
+            <table>
+                <thead><tr><th>Colis</th><th>Commande</th><th>Client</th><th>Pièces</th><th class="droite">Poids</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${tournee.colis}">
+                    <td class="mono" th:text="${c.reference}">C-0412</td>
+                    <td class="mono"><a th:href="@{/atelier/commandes/{id}(id=${c.commande.id})}" th:text="${c.commande.reference}">CMD-0187</a></td>
+                    <td th:text="${c.client.nom}">Métallerie Causse</td>
+                    <td th:text="${c.pieces.size()}">3</td>
+                    <td class="droite nowrap" th:text="${#numbers.formatDecimal(c.poidsKg, 1, 'WHITESPACE', 0, 'COMMA')} + ' kg'">62 kg</td>
+                    <td><span class="chip" th:classappend="${c.statut.name()}" th:text="${c.statut.libelle}">À livrer</span></td>
+                    <td>
+                        <form class="en-ligne" method="post" th:if="${tournee.statut.name() == 'PREVUE'}"
+                              th:action="@{/atelier/tournees/{id}/colis/{c}/retrait(id=${tournee.id},c=${c.id})}">
+                            <button type="submit" class="petit">Retirer</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="carte" th:unless="${tournee.bons.isEmpty()}">
+        <h2>Bons de livraison</h2>
+        <table>
+            <thead><tr><th>Bon</th><th>Client</th><th>Colis</th><th>État</th><th>Commentaire</th><th>Heure</th></tr></thead>
+            <tbody>
+            <tr th:each="b : ${tournee.bons}">
+                <td class="mono" th:text="${b.numero}">BL-20261001-01</td>
+                <td th:text="${b.client.nom}">Client</td>
+                <td><span class="mono petit" th:each="c, it : ${b.colis}" th:text="${c.reference} + ${it.last ? '' : ', '}">C-0418</span></td>
+                <td><span class="chip" th:classappend="${b.etat.name()}" th:text="${b.etat.libelle}">Conforme</span></td>
+                <td class="petit" th:text="${b.commentaire} ?: '—'">—</td>
+                <td class="nowrap" th:text="${#temporals.format(b.dateHeure, 'HH:mm')}">09:20</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="javascript">
+    (function () {
+        const donnees = /*[[${carte}]]*/ {"depot": {"lat": 44.335, "lon": 2.575, "nom": "Atelier"}, "arrets": [], "boucle": false};
+        const camion = '<svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
+        const carte = L.map('carte');
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© contributeurs OpenStreetMap'
+        }).addTo(carte);
+
+        const depot = [donnees.depot.lat, donnees.depot.lon];
+        const points = [depot];
+        L.marker(depot, {icon: L.divIcon({className: '', html: '<div class="marqueur-depot">' + camion + '</div>', iconSize: [30, 30]})})
+            .addTo(carte).bindPopup('<strong>' + donnees.depot.nom + '</strong><br>Départ et retour');
+
+        donnees.arrets.forEach(function (a) {
+            const position = [a.lat, a.lon];
+            points.push(position);
+            const libelle = a.ordre > 0 ? a.ordre : '•';
+            L.marker(position, {icon: L.divIcon({className: '',
+                html: '<div class="marqueur-arret' + (a.livre ? ' livre' : '') + '">' + libelle + '</div>', iconSize: [30, 30]})})
+                .addTo(carte).bindPopup('<strong>' + a.nom + '</strong><br>' + a.ville);
+        });
+
+        if (donnees.boucle) {
+            L.polyline(points.concat([depot]), {color: '#1E3A5F', weight: 4, opacity: .85}).addTo(carte);
+        }
+        carte.fitBounds(L.latLngBounds(points).pad(0.15));
+    })();
+</script>
+</body>
+</html>
