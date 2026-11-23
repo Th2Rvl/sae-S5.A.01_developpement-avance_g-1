@@ -10,7 +10,7 @@ on:
   push:                               # après un merge : seulement si les migrations ont changé
     branches: [api-dev, main]
     paths:
-      - 'bdd/**'
+      - 'serveur/TGV_WorkFloor/src/main/resources/db/migration/**'
       - 'serveur/**'
       - '.github/workflows/bdd.yml'
 
@@ -35,7 +35,7 @@ env:
     docker run --rm --network host
     -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS
     -e FLYWAY_CONNECT_RETRIES -e FLYWAY_VALIDATE_MIGRATION_NAMING
-    -v ${{ github.workspace }}/bdd/migrations:/flyway/sql:ro
+    -v ${{ github.workspace }}/serveur/TGV_WorkFloor/src/main/resources/db/migration:/flyway/sql:ro
     flyway/flyway:12.4.0
 
 jobs:
@@ -71,12 +71,21 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git fetch --depth=1 origin "${{ github.base_ref }}"
-          if git cat-file -e "FETCH_HEAD:bdd/migrations" 2>/dev/null; then
+          # Nouveau chemin d'abord ; l'ancien sert de repli tant que la branche cible n'est pas migrée
+          dossier=""
+          for candidat in serveur/TGV_WorkFloor/src/main/resources/db/migration bdd/migrations; do
+            if git cat-file -e "FETCH_HEAD:$candidat" 2>/dev/null; then
+              dossier="$candidat"
+              break
+            fi
+          done
+          if [ -n "$dossier" ]; then
+            echo "Migrations de la branche cible lues depuis : $dossier"
             mkdir -p "$RUNNER_TEMP/cible"
-            git archive FETCH_HEAD bdd/migrations | tar -x -C "$RUNNER_TEMP/cible"
+            git archive FETCH_HEAD "$dossier" | tar -x -C "$RUNNER_TEMP/cible"
             docker run --rm --network host \
               -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS -e FLYWAY_CONNECT_RETRIES \
-              -v "$RUNNER_TEMP/cible/bdd/migrations:/flyway/sql:ro" \
+              -v "$RUNNER_TEMP/cible/$dossier:/flyway/sql:ro" \
               "$FLYWAY_IMAGE" migrate
           else
             echo "La branche cible n'a pas encore de migrations : on part d'une base vide."

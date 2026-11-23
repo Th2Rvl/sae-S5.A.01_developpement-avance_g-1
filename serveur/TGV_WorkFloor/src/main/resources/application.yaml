@@ -6,7 +6,7 @@ spring:
     username: ${DB_USER:tgv_app}
     password: ${DB_PASSWORD:tgv_app}
   flyway:                              # migrations appliquées au démarrage, avant Hibernate
-    locations: classpath:db/migration  # copiées depuis bdd/migrations au build (voir pom.xml)
+    locations: classpath:db/migration  # src/main/resources/db/migration, embarquées dans le jar
     fail-on-missing-locations: true    # pas de démarrage si les migrations n'ont pas été copiées
     validate-migration-naming: true    # un fichier mal nommé fait échouer au lieu d'être ignoré
   jpa:
