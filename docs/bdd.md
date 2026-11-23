@@ -7,7 +7,6 @@ Base **MySQL 8.4** du projet, exécutée dans un conteneur Docker dans tous les 
 | Environnement | Base | Où | Branche Git associée |
 |---|---|---|---|
 | Développement | `tgv_local` | PC du développeur (Docker Desktop) | `feature-*` |
-| Recette | `tgv_recette` | VM du projet | `api-dev` |
 | Production | `tgv_prod` | VM du projet | `main` |
 
 Le schéma n'est jamais modifié à la main : il évolue par des **migrations Flyway** versionnées
@@ -79,9 +78,9 @@ Accès en ligne de commande, sans client externe :
 docker exec -it tgv-bdd-dev mysql -u tgv_app -p tgv_local
 ```
 
-## Bases de recette et de production
+## Base de production
 
-Elles tournent sur la VM du projet. Le port MySQL n'y est publié que sur la boucle locale
+Elle tourne sur la VM du projet. Le port MySQL n'y est publié que sur la boucle locale
 (`127.0.0.1`) : **aucun accès direct depuis Internet**. L'accès d'administration se fait via un
 **tunnel SSH** (par exemple l'onglet *SSH/SSL* de DataGrip), avec les identifiants transmis
 hors du dépôt. Les mots de passe sont stockés dans le fichier `.env` de la VM, jamais dans Git.
