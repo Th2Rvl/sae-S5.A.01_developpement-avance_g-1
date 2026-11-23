@@ -1,20 +1,17 @@
 # syntax=docker/dockerfile:1
 # =============================================================================
 # Image de l'API TGV_WorkFloor (Spring Boot + Thymeleaf + Flyway)
-# Construire depuis la RACINE du dépôt (le pom copie aussi ../../bdd/migrations) :
-#   docker build -f serveur/TGV_WorkFloor/Dockerfile -t tgv-workfloor .
+# Construire depuis la racine du dépôt (contexte : le dossier de l'API) :
+#   docker build -t tgv-workfloor serveur/TGV_WorkFloor
 # =============================================================================
 
 # ---- Étape 1 : compilation (JDK + Maven, jetée ensuite) ---------------------
 FROM maven:3.9-eclipse-temurin-25 AS build
 WORKDIR /build
 
-# Même arborescence que le dépôt, pour que ../../bdd/migrations soit trouvé
-COPY bdd/migrations bdd/migrations
-COPY serveur/TGV_WorkFloor/pom.xml serveur/TGV_WorkFloor/pom.xml
-COPY serveur/TGV_WorkFloor/src serveur/TGV_WorkFloor/src
+COPY pom.xml pom.xml
+COPY src src
 
-WORKDIR /build/serveur/TGV_WorkFloor
 # Cache Maven conservé entre deux builds ; tests sautés (ils tournent dans la CI)
 RUN --mount=type=cache,target=/root/.m2 \
     mvn -B -q package -DskipTests \

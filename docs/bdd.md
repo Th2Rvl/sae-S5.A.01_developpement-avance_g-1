@@ -11,12 +11,11 @@ Base **MySQL 8.4** du projet, exécutée dans un conteneur Docker dans tous les 
 | Production | `tgv_prod` | VM du projet | `main` |
 
 Le schéma n'est jamais modifié à la main : il évolue par des **migrations Flyway** versionnées
-(`bdd/migrations/V<n>__<description>.sql`), appliquées automatiquement au démarrage de l'API
-dans chaque environnement.
+(`serveur/TGV_WorkFloor/src/main/resources/db/migration/V<n>__<description>.sql`), appliquées
+automatiquement au démarrage de l'API dans chaque environnement.
 
-Au build, Maven copie `bdd/migrations/` dans le jar sous `db/migration` (bloc `<resources>` de
-`serveur/TGV_WorkFloor/pom.xml`) : ce dossier reste la seule source, également lue par la CI
-(`.github/workflows/bdd.yml`) et par le service `flyway` du compose. Flyway s'exécute avant
+Ce dossier est une ressource standard de Spring Boot, embarquée dans le jar sous `db/migration` :
+il reste la seule source, également lue par la CI (`.github/workflows/bdd.yml`) et par le service `flyway` du compose. Flyway s'exécute avant
 Hibernate, dont le `ddl-auto: validate` vérifie ensuite que les entités correspondent au schéma.
 Les tests (profil `test`, base H2) désactivent Flyway : les migrations MySQL sont vérifiées par la CI.
 

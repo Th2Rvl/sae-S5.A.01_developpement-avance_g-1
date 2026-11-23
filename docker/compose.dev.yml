@@ -38,7 +38,7 @@ services:
       FLYWAY_LOCATIONS: filesystem:/flyway/sql  # dossier des migrations dans le conteneur
       FLYWAY_CONNECT_RETRIES: 10             # réessaie si la base n'est pas encore prête
     volumes:
-      - ../bdd/migrations:/flyway/sql:ro     # migrations du dépôt, en lecture seule
+      - ../serveur/TGV_WorkFloor/src/main/resources/db/migration:/flyway/sql:ro  # migrations de l'API, en lecture seule
     command: info                            # commande par défaut si aucune n'est précisée
 
 volumes:
