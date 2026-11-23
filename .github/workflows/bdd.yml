@@ -109,36 +109,6 @@ jobs:
         run: $FLYWAY info
 
   # ---------------------------------------------------------------------------
-  # Déploiement en RECETTE : après un merge dans api-dev, si les tests sont verts
-  # ---------------------------------------------------------------------------
-  deploiement-recette:
-    name: Déploiement recette
-    needs: migrations                       # seulement si la CI est verte
-    if: github.event_name == 'push' && github.ref == 'refs/heads/api-dev'
-    runs-on: ubuntu-latest
-    environment: recette
-    steps:
-      - name: Préparer la connexion SSH
-        env:                                # secrets passés par variables, jamais inline
-          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
-          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
-        run: |
-          install -m 700 -d ~/.ssh
-          # tr -d '\r' : supprime les fins de ligne Windows éventuellement copiées avec le secret
-          printf '%s\n' "$VM_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
-          printf '%s\n' "$VM_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
-          # Vérifie que la clé est lisible : affiche son empreinte (publique, sans risque)
-          ssh-keygen -l -f ~/.ssh/deploy
-
-      - name: Migrer la base de recette
-        env:
-          VM_HOST: ${{ secrets.VM_HOST }}
-          VM_PORT: ${{ secrets.VM_PORT }}
-          VM_USER: ${{ secrets.VM_USER }}
-        # La clé est bridée côté VM : cette commande devient "sae-deploy migrer recette"
-        run: ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer recette
-
-  # ---------------------------------------------------------------------------
   # Déploiement en PRODUCTION : après un merge dans main, APRÈS approbation
   # ---------------------------------------------------------------------------
   deploiement-prod:
