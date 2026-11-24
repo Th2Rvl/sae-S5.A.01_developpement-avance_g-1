@@ -7,12 +7,16 @@ Base **MySQL 8.4** du projet, exécutée dans un conteneur Docker dans tous les 
 | Environnement | Base | Où | Branche Git associée |
 |---|---|---|---|
 | Développement | `tgv_local` | PC du développeur (Docker Desktop) | `feature-*` |
-| Recette | `tgv_recette` | VM du projet | `api-dev` |
 | Production | `tgv_prod` | VM du projet | `main` |
 
 Le schéma n'est jamais modifié à la main : il évolue par des **migrations Flyway** versionnées
-(`serveur/src/main/resources/db/migration/V<n>__<description>.sql`), appliquées automatiquement
-au démarrage de l'API dans chaque environnement.
+(`serveur/TGV_WorkFloor/src/main/resources/db/migration/V<n>__<description>.sql`), appliquées
+automatiquement au démarrage de l'API dans chaque environnement.
+
+Ce dossier est une ressource standard de Spring Boot, embarquée dans le jar sous `db/migration` :
+il reste la seule source, également lue par la CI (`.github/workflows/bdd.yml`) et par le service `flyway` du compose. Flyway s'exécute avant
+Hibernate, dont le `ddl-auto: validate` vérifie ensuite que les entités correspondent au schéma.
+Les tests (profil `test`, base H2) désactivent Flyway : les migrations MySQL sont vérifiées par la CI.
 
 ## Base de développement locale
 
@@ -74,9 +78,9 @@ Accès en ligne de commande, sans client externe :
 docker exec -it tgv-bdd-dev mysql -u tgv_app -p tgv_local
 ```
 
-## Bases de recette et de production
+## Base de production
 
-Elles tournent sur la VM du projet. Le port MySQL n'y est publié que sur la boucle locale
+Elle tourne sur la VM du projet. Le port MySQL n'y est publié que sur la boucle locale
 (`127.0.0.1`) : **aucun accès direct depuis Internet**. L'accès d'administration se fait via un
 **tunnel SSH** (par exemple l'onglet *SSH/SSL* de DataGrip), avec les identifiants transmis
 hors du dépôt. Les mots de passe sont stockés dans le fichier `.env` de la VM, jamais dans Git.

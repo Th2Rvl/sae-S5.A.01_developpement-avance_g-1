@@ -10,18 +10,19 @@ on:
   push:                               # après un merge : seulement si les migrations ont changé
     branches: [api-dev, main]
     paths:
-      - 'bdd/**'
+      - 'serveur/TGV_WorkFloor/src/main/resources/db/migration/**'
+      - 'serveur/**'
       - '.github/workflows/bdd.yml'
 
 permissions:
   contents: read                      # le workflow ne fait que lire le dépôt
 
-concurrency:                          # un nouveau push annule l'exécution en cours de la même branche
+concurrency:
   group: bdd-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}   # on n'annule jamais un déploiement
 
 env:
-  FLYWAY_IMAGE: flyway/flyway:13.9.0  # même version qu'en local
+  FLYWAY_IMAGE: flyway/flyway:12.4.0  # même version qu'en local
   # Variables lues automatiquement par Flyway (transmises au conteneur avec "-e NOM")
   FLYWAY_URL: jdbc:mysql://127.0.0.1:3306/tgv_ci?permitMysqlScheme=true&allowPublicKeyRetrieval=true
   FLYWAY_USER: tgv_app
@@ -34,8 +35,8 @@ env:
     docker run --rm --network host
     -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS
     -e FLYWAY_CONNECT_RETRIES -e FLYWAY_VALIDATE_MIGRATION_NAMING
-    -v ${{ github.workspace }}/bdd/migrations:/flyway/sql:ro
-    flyway/flyway:13.9.0
+    -v ${{ github.workspace }}/serveur/TGV_WorkFloor/src/main/resources/db/migration:/flyway/sql:ro
+    flyway/flyway:12.4.0
 
 jobs:
   migrations:
@@ -70,12 +71,21 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git fetch --depth=1 origin "${{ github.base_ref }}"
-          if git cat-file -e "FETCH_HEAD:bdd/migrations" 2>/dev/null; then
+          # Nouveau chemin d'abord ; l'ancien sert de repli tant que la branche cible n'est pas migrée
+          dossier=""
+          for candidat in serveur/TGV_WorkFloor/src/main/resources/db/migration bdd/migrations; do
+            if git cat-file -e "FETCH_HEAD:$candidat" 2>/dev/null; then
+              dossier="$candidat"
+              break
+            fi
+          done
+          if [ -n "$dossier" ]; then
+            echo "Migrations de la branche cible lues depuis : $dossier"
             mkdir -p "$RUNNER_TEMP/cible"
-            git archive FETCH_HEAD bdd/migrations | tar -x -C "$RUNNER_TEMP/cible"
+            git archive FETCH_HEAD "$dossier" | tar -x -C "$RUNNER_TEMP/cible"
             docker run --rm --network host \
               -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD -e FLYWAY_LOCATIONS -e FLYWAY_CONNECT_RETRIES \
-              -v "$RUNNER_TEMP/cible/bdd/migrations:/flyway/sql:ro" \
+              -v "$RUNNER_TEMP/cible/$dossier:/flyway/sql:ro" \
               "$FLYWAY_IMAGE" migrate
           else
             echo "La branche cible n'a pas encore de migrations : on part d'une base vide."
@@ -97,3 +107,33 @@ jobs:
       - name: État final de la base
         if: always()                  # affiché même si une étape précédente a échoué
         run: $FLYWAY info
+
+  # ---------------------------------------------------------------------------
+  # Déploiement en PRODUCTION : après un merge dans main, APRÈS approbation
+  # ---------------------------------------------------------------------------
+  deploiement-prod:
+    name: Déploiement production
+    needs: migrations
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production                 # attend l'approbation manuelle
+    steps:
+      - name: Préparer la connexion SSH
+        env:
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          # tr -d '\r' : supprime les fins de ligne Windows éventuellement copiées avec le secret
+          printf '%s\n' "$VM_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$VM_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          # Vérifie que la clé est lisible : affiche son empreinte (publique, sans risque)
+          ssh-keygen -l -f ~/.ssh/deploy
+
+      - name: Sauvegarder puis migrer la production
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_PORT: ${{ secrets.VM_PORT }}
+          VM_USER: ${{ secrets.VM_USER }}
+        # Le guichet lance sauvegarde.sh AVANT la migration de prod
+        run: ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/deploy -p "$VM_PORT" "$VM_USER@$VM_HOST" migrer prod
