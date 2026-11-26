@@ -2,8 +2,6 @@ CREATE DATABASE IF NOT EXISTS tgv_local
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE tgv_local;
-
 -- Suppression (permet de relancer le script)
 SET FOREIGN_KEY_CHECKS = 0;
 DROP VIEW  IF EXISTS V_POIDS_COMMANDE;
