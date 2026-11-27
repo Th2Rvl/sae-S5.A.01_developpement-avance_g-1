@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Atome : entrée de menu (icône + libellé).
+  Paramètres :
+    href   : URL cible (passer une expression @{...})
+    label  : libellé affiché
+    icon   : nom d'icône (voir component/utils/icon/icon.html)
+    active : true si c'est la page courante
+  Usage : <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier/clients}, 'Clients', 'users', false)}"></li>
+-->
+<li th:fragment="navbarItem(href, label, icon, active)" class="navbar-item">
+    <a th:href="${href}"
+       class="navbar-item__link"
+       th:classappend="${active} ? 'navbar-item__link--active'"
+       th:attr="aria-current=${active} ? 'page' : null">
+        <svg th:replace="~{component/utils/icon/icon :: icon(${icon})}"></svg>
+        <span class="navbar-item__label" th:text="${label}">Libellé</span>
+    </a>
+</li>
+</body>
+</html>

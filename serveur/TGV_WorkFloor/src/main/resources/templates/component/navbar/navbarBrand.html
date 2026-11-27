@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Molécule : en-tête de la navbar (logo + nom de l'application + sous-titre).
+  Usage : <a th:replace="~{component/navbar/navbarBrand :: navbarBrand}"></a>
+-->
+<a th:fragment="navbarBrand" th:href="@{/atelier}" class="navbar-brand">
+    <span th:replace="~{component/utils/logo/logo :: logo}"></span>
+    <span class="navbar-brand__text">
+        <span class="navbar-brand__name">T.G.V</span>
+        <span class="navbar-brand__subtitle">Atelier</span>
+    </span>
+</a>
+</body>
+</html>

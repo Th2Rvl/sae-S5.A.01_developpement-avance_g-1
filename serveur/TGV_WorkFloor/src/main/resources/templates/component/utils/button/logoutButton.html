@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Atome : bouton de déconnexion, rendu comme un lien.
+  POST sur /logout (exigé par Spring Security) ; th:action ajoute automatiquement le jeton CSRF.
+  Usage : <form th:replace="~{component/utils/button/logoutButton :: logoutButton('Se déconnecter')}"></form>
+-->
+<form th:fragment="logoutButton(label)" th:action="@{/logout}" method="post" class="logout-button">
+    <button type="submit" class="logout-button__btn" th:text="${label}">Se déconnecter</button>
+</form>
+</body>
+</html>

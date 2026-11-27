@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Molécule : texte d'accroche affiché en bas de la navbar sur la page de connexion.
+  Usage : <div th:replace="~{component/navbar/navbarAccroche :: navbarAccroche}"></div>
+-->
+<div th:fragment="navbarAccroche" class="navbar-accroche">
+    <p class="navbar-accroche__titre">Commandes, pièces et tournées de livraison, au même endroit.</p>
+    <p class="navbar-accroche__texte">Accès réservé au personnel de l'atelier.</p>
+</div>
+</body>
+</html>

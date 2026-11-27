@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tableau de bord · T.G.V Atelier</title>
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <th:block th:replace="~{component/navbar/navbar :: styles}"></th:block>
+</head>
+<body class="page">
+    <aside th:replace="~{component/navbar/navbar :: navbar('tableauDeBord', 'Responsable commandes', false)}"></aside>
+    <main class="page__contenu">
+        <!-- Contenu du tableau de bord à venir -->
+    </main>
+</body>
+</html>

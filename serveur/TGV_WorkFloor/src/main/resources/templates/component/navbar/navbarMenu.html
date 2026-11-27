@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Molécule : liste des entrées de navigation.
+  Paramètre activePage : clé de la page courante, identique au nom du dossier dans templates/feature/
+    tableauDeBord | clients | commandes | pieces | bonDeLivraison | bouclesDeLivraison
+  Usage : <nav th:replace="~{component/navbar/navbarMenu :: navbarMenu('clients')}"></nav>
+-->
+<nav th:fragment="navbarMenu(activePage)" class="navbar-menu" aria-label="Navigation principale">
+    <ul class="navbar-menu__list">
+        <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier}, 'Tableau de bord', 'layoutGrid', ${activePage == 'tableauDeBord'})}"></li>
+        <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier/clients}, 'Clients', 'users', ${activePage == 'clients'})}"></li>
+        <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier/commandes}, 'Commandes', 'clipboard', ${activePage == 'commandes'})}"></li>
+        <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier/pieces}, 'Pièces', 'sun', ${activePage == 'pieces'})}"></li>
+        <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier/bons}, 'Bons de livraison', 'receipt', ${activePage == 'bonDeLivraison'})}"></li>
+        <li th:replace="~{component/navbar/navbarItem :: navbarItem(@{/atelier/boucles}, 'Boucles de livraison', 'route', ${activePage == 'bouclesDeLivraison'})}"></li>
+    </ul>
+</nav>
+</body>
+</html>
