@@ -1,0 +1,11 @@
+.icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.icon--truck {
+    width: 24px;
+    height: 24px;
+}

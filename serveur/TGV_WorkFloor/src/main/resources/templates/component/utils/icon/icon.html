@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Atome : icône SVG (tracés exportés de la maquette Figma).
+  Usage : <svg th:replace="~{component/utils/icon/icon :: icon('truck')}"></svg>
+  Noms disponibles : truck, layoutGrid, users, clipboard, sun, receipt, route
+  Le trait suit `currentColor` : la couleur se règle en CSS (color), la taille via la classe .icon.
+-->
+<th:block th:fragment="icon(name)" th:switch="${name}">
+    <svg th:case="'truck'" class="icon icon--truck" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M3 6H14V16H3V6Z"/>
+        <path d="M14 10H18L21 13V16H14"/>
+        <path d="M8.8 17.5C8.8 18.4941 7.99411 19.3 7 19.3C6.00589 19.3 5.2 18.4941 5.2 17.5C5.2 16.5059 6.00589 15.7 7 15.7C7.99411 15.7 8.8 16.5059 8.8 17.5Z"/>
+        <path d="M18.8 17.5C18.8 18.4941 17.9941 19.3 17 19.3C16.0059 19.3 15.2 18.4941 15.2 17.5C15.2 16.5059 16.0059 15.7 17 15.7C17.9941 15.7 18.8 16.5059 18.8 17.5Z"/>
+    </svg>
+    <svg th:case="'layoutGrid'" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M3.75 2.5H7.08333C7.77369 2.5 8.33333 3.05964 8.33333 3.75V7.08333C8.33333 7.77369 7.77369 8.33333 7.08333 8.33333H3.75C3.05964 8.33333 2.5 7.77369 2.5 7.08333V3.75C2.5 3.05964 3.05964 2.5 3.75 2.5Z"/>
+        <path d="M12.9167 2.5H16.25C16.9404 2.5 17.5 3.05964 17.5 3.75V7.08333C17.5 7.77369 16.9404 8.33333 16.25 8.33333H12.9167C12.2263 8.33333 11.6667 7.77369 11.6667 7.08333V3.75C11.6667 3.05964 12.2263 2.5 12.9167 2.5Z"/>
+        <path d="M3.75 11.6667H7.08333C7.77369 11.6667 8.33333 12.2263 8.33333 12.9167V16.25C8.33333 16.9404 7.77369 17.5 7.08333 17.5H3.75C3.05964 17.5 2.5 16.9404 2.5 16.25V12.9167C2.5 12.2263 3.05964 11.6667 3.75 11.6667Z"/>
+        <path d="M12.9167 11.6667H16.25C16.9404 11.6667 17.5 12.2263 17.5 12.9167V16.25C17.5 16.9404 16.9404 17.5 16.25 17.5H12.9167C12.2263 17.5 11.6667 16.9404 11.6667 16.25V12.9167C11.6667 12.2263 12.2263 11.6667 12.9167 11.6667Z"/>
+    </svg>
+    <svg th:case="'users'" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M10.4167 6.66667C10.4167 8.2775 9.11083 9.58333 7.5 9.58333C5.88917 9.58333 4.58333 8.2775 4.58333 6.66667C4.58333 5.05584 5.88917 3.75 7.5 3.75C9.11083 3.75 10.4167 5.05584 10.4167 6.66667Z"/>
+        <path d="M2.08333 16.6667C2.08333 15.2301 2.65402 13.8523 3.66984 12.8365C4.68566 11.8207 6.06341 11.25 7.5 11.25C8.93659 11.25 10.3143 11.8207 11.3302 12.8365C12.346 13.8523 12.9167 15.2301 12.9167 16.6667"/>
+        <path d="M13.3333 3.75C14.1069 3.75 14.8487 4.05729 15.3957 4.60427C15.9427 5.15125 16.25 5.89312 16.25 6.66667C16.25 7.44021 15.9427 8.18208 15.3957 8.72906C14.8487 9.27604 14.1069 9.58333 13.3333 9.58333"/>
+        <path d="M15 11.6667C15.9093 12.1389 16.666 12.8594 17.1822 13.7444C17.6985 14.6294 17.9532 15.6427 17.9167 16.6667"/>
+    </svg>
+    <svg th:case="'clipboard'" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M5.83333 3.33333H14.1667C15.0871 3.33333 15.8333 4.07953 15.8333 5V15.8333C15.8333 16.7538 15.0871 17.5 14.1667 17.5H5.83333C4.91286 17.5 4.16667 16.7538 4.16667 15.8333V5C4.16667 4.07953 4.91286 3.33333 5.83333 3.33333Z"/>
+        <path d="M7.5 2.5H12.5V5H7.5V2.5Z"/>
+        <path d="M7.5 9.16667H12.5M7.5 12.5H12.5"/>
+    </svg>
+    <svg th:case="'sun'" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M12.5 10C12.5 11.3807 11.3807 12.5 10 12.5C8.61929 12.5 7.5 11.3807 7.5 10C7.5 8.61929 8.61929 7.5 10 7.5C11.3807 7.5 12.5 8.61929 12.5 10Z"/>
+        <path d="M10 1.66667V4.16667M10 15.8333V18.3333M1.66667 10H4.16667M15.8333 10H18.3333M4.08333 4.08333L5.83333 5.83333M14.1667 14.1667L15.9167 15.9167M4.08333 15.9167L5.83333 14.1667M14.1667 5.83333L15.9167 4.08333"/>
+    </svg>
+    <svg th:case="'receipt'" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M5 2.5H15V17.5L12.5 15.8333L10 17.5L7.5 15.8333L5 17.5V2.5Z"/>
+        <path d="M7.5 6.66667H12.5M7.5 10H12.5"/>
+    </svg>
+    <svg th:case="'route'" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M6.66667 15.8333C6.66667 16.7538 5.92047 17.5 5 17.5C4.07953 17.5 3.33333 16.7538 3.33333 15.8333C3.33333 14.9129 4.07953 14.1667 5 14.1667C5.92047 14.1667 6.66667 14.9129 6.66667 15.8333Z"/>
+        <path d="M16.6667 4.16667C16.6667 5.08714 15.9205 5.83333 15 5.83333C14.0795 5.83333 13.3333 5.08714 13.3333 4.16667C13.3333 3.24619 14.0795 2.5 15 2.5C15.9205 2.5 16.6667 3.24619 16.6667 4.16667Z"/>
+        <path d="M6.66667 15.8333H13.3333C14.1069 15.8333 14.8487 15.526 15.3957 14.9791C15.9427 14.4321 16.25 13.6902 16.25 12.9167C16.25 12.1431 15.9427 11.4013 15.3957 10.8543C14.8487 10.3073 14.1069 10 13.3333 10H6.66667C5.89312 10 5.15125 9.69271 4.60427 9.14573C4.05729 8.59875 3.75 7.85688 3.75 7.08333C3.75 6.30979 4.05729 5.56792 4.60427 5.02094C5.15125 4.47396 5.89312 4.16667 6.66667 4.16667H13.3333"/>
+    </svg>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,45 @@
+/* Variables de design : reprises de la maquette Figma (static/css/atelier.css) */
+:root {
+    --tgv-bleu: #1E3A5F;
+    --tgv-orange: #B85209;
+    --tgv-orange-vif: #F28C28;
+    --fond: #F2F4F7;
+    --surface: #FFFFFF;
+    --texte: #1A1F24;
+    --texte-secondaire: #56606B;
+    --contour: #79828D;
+    --separateur: #DCE1E8;
+    --erreur: #B3261E;
+
+    /* Navbar */
+    --menu-texte: #C9D4E3;
+    --menu-texte-discret: #B8C4D4;
+    --menu-actif: rgba(255, 255, 255, 0.14);
+    --menu-survol: rgba(255, 255, 255, 0.08);
+    --menu-separateur: rgba(255, 255, 255, 0.16);
+    --menu-largeur: 240px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Roboto, system-ui, sans-serif;
+    background: var(--fond);
+    color: var(--texte);
+}
+
+/* Mise en page : navbar à gauche, contenu à droite */
+.page {
+    display: grid;
+    min-height: 100vh;
+    grid-template-columns: var(--menu-largeur) 1fr;
+}
+
+.page__contenu {
+    min-width: 0;
+}

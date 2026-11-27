@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Atome : pastille logo T.G.V (camion sur fond orange).
+  Usage : <span th:replace="~{component/utils/logo/logo :: logo}"></span>
+-->
+<span th:fragment="logo" class="logo" aria-hidden="true">
+    <svg th:replace="~{component/utils/icon/icon :: icon('truck')}"></svg>
+</span>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!--
+      Feuilles de style nécessaires à la navbar et à ses sous-composants.
+      Usage (dans le <head> de la page) : <th:block th:replace="~{component/navbar/navbar :: styles}"></th:block>
+    -->
+    <th:block th:fragment="styles">
+        <link rel="stylesheet" th:href="@{/css/component/utils/icon.css}">
+        <link rel="stylesheet" th:href="@{/css/component/utils/logo.css}">
+        <link rel="stylesheet" th:href="@{/css/component/utils/logoutButton.css}">
+        <link rel="stylesheet" th:href="@{/css/component/navbar/navbar.css}">
+    </th:block>
+</head>
+<body>
+<!--
+  Organisme : barre de navigation latérale de l'interface Atelier.
+  Paramètres :
+    activePage : clé de la page courante (voir navbarMenu.html) ; ignoré si connexion = true
+    roleLabel  : libellé du rôle de l'utilisateur connecté ; ignoré si connexion = true
+    connexion  : true sur la page de connexion → affiche l'accroche à la place du menu et du pied utilisateur
+  Usage :
+    <aside th:replace="~{component/navbar/navbar :: navbar('commandes', 'Responsable commandes', false)}"></aside>
+    <aside th:replace="~{component/navbar/navbar :: navbar(null, null, true)}"></aside>
+-->
+<aside th:fragment="navbar(activePage, roleLabel, connexion)" class="navbar">
+    <a th:replace="~{component/navbar/navbarBrand :: navbarBrand}"></a>
+    <th:block th:if="${connexion}">
+        <div th:replace="~{component/navbar/navbarAccroche :: navbarAccroche}"></div>
+    </th:block>
+    <th:block th:unless="${connexion}">
+        <nav th:replace="~{component/navbar/navbarMenu :: navbarMenu(${activePage})}"></nav>
+        <div th:replace="~{component/navbar/navbarUser :: navbarUser(${roleLabel})}"></div>
+    </th:block>
+</aside>
+</body>
+</html>

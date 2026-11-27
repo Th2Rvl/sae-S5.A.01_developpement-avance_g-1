@@ -1,0 +1,131 @@
+/* ---------- navbar (organisme) ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    width: var(--menu-largeur);
+    height: 100vh;
+    padding: 24px 12px;
+    background: var(--tgv-bleu);
+    color: #FFFFFF;
+}
+
+/* ---------- navbarBrand ---------- */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.navbar-brand__text {
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-brand__name {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    line-height: 23px;
+}
+
+.navbar-brand__subtitle {
+    font-size: 13px;
+    line-height: 15px;
+    color: var(--menu-texte-discret);
+}
+
+/* ---------- navbarMenu ---------- */
+.navbar-menu {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 32px;
+}
+
+.navbar-menu__list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* ---------- navbarItem ---------- */
+.navbar-item__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 22px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--menu-texte);
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar-item__link:hover {
+    background: var(--menu-survol);
+    color: #FFFFFF;
+}
+
+.navbar-item__link:focus-visible {
+    outline: 2px solid var(--tgv-orange-vif);
+    outline-offset: -2px;
+}
+
+.navbar-item__link--active,
+.navbar-item__link--active:hover {
+    background: var(--menu-actif);
+    color: #FFFFFF;
+}
+
+.navbar-item__link--active .icon {
+    color: var(--tgv-orange-vif);
+}
+
+/* ---------- navbarUser ---------- */
+.navbar-user {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 16px 0;
+    border-top: 1px solid var(--menu-separateur);
+}
+
+.navbar-user__role {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ---------- navbarAccroche (page de connexion) ---------- */
+.navbar-accroche {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+    padding: 0 10px;
+}
+
+.navbar-accroche__titre,
+.navbar-accroche__texte {
+    margin: 0;
+}
+
+.navbar-accroche__titre {
+    font-size: 28px;
+    line-height: 40px;
+    color: #FFFFFF;
+}
+
+.navbar-accroche__texte {
+    font-size: 13px;
+    line-height: 22px;
+    color: var(--menu-texte);
+}

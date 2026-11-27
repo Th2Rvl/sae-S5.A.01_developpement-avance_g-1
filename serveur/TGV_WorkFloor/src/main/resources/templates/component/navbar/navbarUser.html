@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Molécule : pied de la navbar (rôle de l'utilisateur connecté + déconnexion).
+  Paramètre roleLabel : libellé du rôle affiché (ex. 'Responsable commandes')
+  Usage : <div th:replace="~{component/navbar/navbarUser :: navbarUser('Responsable commandes')}"></div>
+-->
+<div th:fragment="navbarUser(roleLabel)" class="navbar-user">
+    <span class="navbar-user__role" th:text="${roleLabel}">Responsable commandes</span>
+    <form th:replace="~{component/utils/button/logoutButton :: logoutButton('Se déconnecter')}"></form>
+</div>
+</body>
+</html>
