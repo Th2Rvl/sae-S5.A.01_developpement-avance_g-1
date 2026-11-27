@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["BOUSSOLE.md"],
+  "permissions": [
+    { "action": "shell", "resource": "git add *", "effect": "deny" },
+    { "action": "shell", "resource": "git commit *", "effect": "deny" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "git pull *", "effect": "deny" },
+    { "action": "shell", "resource": "git merge *", "effect": "deny" },
+    { "action": "shell", "resource": "git rebase *", "effect": "deny" },
+    { "action": "shell", "resource": "git reset *", "effect": "deny" },
+    { "action": "shell", "resource": "git revert *", "effect": "deny" },
+    { "action": "shell", "resource": "git cherry-pick *", "effect": "deny" },
+    { "action": "shell", "resource": "git stash *", "effect": "deny" },
+    { "action": "shell", "resource": "git tag *", "effect": "deny" },
+    { "action": "shell", "resource": "git branch *", "effect": "deny" },
+    { "action": "shell", "resource": "git switch *", "effect": "deny" },
+    { "action": "shell", "resource": "git checkout *", "effect": "deny" },
+    { "action": "shell", "resource": "git restore *", "effect": "deny" },
+    { "action": "shell", "resource": "git rm *", "effect": "deny" },
+    { "action": "shell", "resource": "git mv *", "effect": "deny" },
+    { "action": "shell", "resource": "git clean *", "effect": "deny" },
+    { "action": "shell", "resource": "git am *", "effect": "deny" },
+    { "action": "shell", "resource": "git apply *", "effect": "deny" },
+    { "action": "shell", "resource": "gh pr create *", "effect": "deny" },
+    { "action": "shell", "resource": "gh pr merge *", "effect": "deny" }
+  ]
+}
